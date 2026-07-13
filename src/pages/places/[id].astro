@@ -1,0 +1,350 @@
+---
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import Base from '../../layouts/Base.astro';
+import { STATUS_META, formatDate, withBase, type Status } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const places = await getCollection('places');
+  return places.map((place) => ({ params: { id: place.id }, props: { place } }));
+}
+
+const { place } = Astro.props;
+const d = place.data;
+const status = d.status as Status;
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
+const banner = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
+
+// 正文按二级标题拆分：美景 / 人文 / 美食 进主栏，「出发前 checklist」进侧栏
+const sections = (place.body ?? '')
+  .split(/^##\s+/m)
+  .map((part) => part.trim())
+  .filter(Boolean)
+  .map((part) => {
+    const newline = part.indexOf('\n');
+    const heading = newline === -1 ? part : part.slice(0, newline).trim();
+    const content = newline === -1 ? '' : part.slice(newline + 1);
+    return { heading, html: marked.parse(content) as string };
+  });
+
+const checklist = sections.find((s) => s.heading.toLowerCase().includes('checklist'));
+const mainSections = sections.filter((s) => s !== checklist);
+---
+
+<Base title={`${d.title} · Wanderlist`} description={d.motivation}>
+  <main>
+    <div class="banner">
+      {banner ? (
+        <img src={banner} alt={`${d.title}插画`} />
+      ) : (
+        <div class="banner-fallback"><span>{d.title}</span></div>
+      )}
+    </div>
+
+    <div class="container article-wrap">
+      <header class="article-head">
+        <div class="head-top">
+          <h1>{d.title}</h1>
+          <span class={`badge badge-${status}`}>{STATUS_META[status].label}</span>
+        </div>
+        <p class="head-meta">
+          <span>{d.country} · {d.region}</span>
+          <span class="dot">·</span>
+          <span>记录于 {formatDate(d.addedDate)}</span>
+          <a class="source-tag" href={d.sourceUrl} target="_blank" rel="noopener noreferrer">
+            来源：{d.sourcePlatform} ↗
+          </a>
+        </p>
+      </header>
+
+      <div class="article-grid">
+        <article class="article-main">
+          {mainSections.map((section) => (
+            <section class="prose-section">
+              <h2>{section.heading}</h2>
+              <div class="prose" set:html={section.html} />
+            </section>
+          ))}
+        </article>
+
+        <aside class="article-aside">
+          <div class="info-card">
+            <dl class="info-facts">
+              <div>
+                <dt>签证</dt>
+                <dd>{d.visaType}</dd>
+              </div>
+              <div>
+                <dt>最佳季节</dt>
+                <dd>{d.bestSeason}</dd>
+              </div>
+            </dl>
+          </div>
+          {checklist && (
+            <div class="info-card checklist-card">
+              <h2>{checklist.heading}</h2>
+              <div class="prose prose-small" set:html={checklist.html} />
+            </div>
+          )}
+        </aside>
+      </div>
+
+      <blockquote class="motivation-quote">
+        <p>{d.motivation}</p>
+        <footer>—— 记录于 {formatDate(d.addedDate)}</footer>
+      </blockquote>
+
+      <p class="back-link"><a href={`${base}/`}>← 返回清单</a></p>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .banner {
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .banner img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .banner-fallback {
+    height: 300px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #e8cfa8 0%, #d9a441 55%, #a34a2a 130%);
+  }
+
+  .banner-fallback span {
+    font-family: var(--serif);
+    font-size: 3.4rem;
+    font-weight: 900;
+    color: rgba(255, 251, 240, 0.94);
+    letter-spacing: 0.2em;
+  }
+
+  .article-head {
+    padding: 2.4rem 0 1.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .head-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .head-top h1 {
+    font-size: clamp(2rem, 4.5vw, 2.9rem);
+    font-weight: 900;
+  }
+
+  .head-meta {
+    margin: 0.9rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .dot {
+    opacity: 0.6;
+  }
+
+  .source-tag {
+    font-size: 0.8rem;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 999px;
+    padding: 0.12em 0.9em;
+    color: var(--primary);
+  }
+
+  .source-tag:hover {
+    border-color: var(--primary);
+  }
+
+  .article-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 3rem;
+    padding: 2.2rem 0 1rem;
+    align-items: start;
+  }
+
+  .prose-section {
+    margin-bottom: 2.4rem;
+  }
+
+  .prose-section h2 {
+    font-size: 1.45rem;
+    color: var(--primary-deep);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose-section h2::before {
+    content: '';
+    width: 1.4rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    flex: none;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1em;
+    text-align: justify;
+  }
+
+  .prose :global(ul) {
+    margin: 0 0 1em;
+    padding-left: 1.3em;
+  }
+
+  .prose :global(li) {
+    margin-bottom: 0.45em;
+  }
+
+  .prose :global(li)::marker {
+    color: var(--accent);
+  }
+
+  .prose :global(strong) {
+    color: var(--primary-deep);
+    font-weight: 600;
+  }
+
+  .article-aside {
+    position: sticky;
+    top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+  }
+
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .info-facts {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .info-facts dt {
+    font-size: 0.78rem;
+    letter-spacing: 0.25em;
+    color: var(--ink-soft);
+    margin-bottom: 0.15rem;
+  }
+
+  .info-facts dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .checklist-card h2 {
+    font-size: 1.05rem;
+    color: var(--primary-deep);
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .prose-small {
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+
+  .prose-small :global(ul) {
+    padding-left: 1.1em;
+  }
+
+  .prose-small :global(li) {
+    margin-bottom: 0.7em;
+  }
+
+  .motivation-quote {
+    margin: 2.6rem 0 0;
+    padding: 2.4rem 2.6rem;
+    background: var(--paper-deep);
+    border-radius: 16px;
+    position: relative;
+    text-align: center;
+  }
+
+  .motivation-quote::before {
+    content: '「';
+    position: absolute;
+    top: -0.35em;
+    left: 0.9rem;
+    font-family: var(--serif);
+    font-size: 3.6rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .motivation-quote p {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+    font-weight: 700;
+    color: var(--primary-deep);
+    line-height: 1.9;
+  }
+
+  .motivation-quote footer {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  .back-link {
+    padding: 2rem 0 3rem;
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .article-grid {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+
+    .article-aside {
+      position: static;
+      order: 2;
+    }
+
+    .article-main {
+      order: 1;
+    }
+
+    .banner img {
+      max-height: 260px;
+    }
+
+    .motivation-quote {
+      padding: 2rem 1.4rem;
+    }
+  }
+</style>

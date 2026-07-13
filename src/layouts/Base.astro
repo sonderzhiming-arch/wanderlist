@@ -1,0 +1,48 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '把每一个想去的地方，固化成一份可回看的档案。' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const path = Astro.url.pathname;
+const isMap = path.startsWith(`${base}/map`);
+const isHome = !isMap && (path === `${base}/` || path === base);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={`${base}/`}>
+        <span class="brand-en">Wanderlist</span>
+        <span class="brand-zh">旅行愿望清单</span>
+      </a>
+      <nav class="site-nav">
+        <a href={`${base}/`} aria-current={isHome ? 'page' : undefined}>清单</a>
+        <a href={`${base}/map/`} aria-current={isMap ? 'page' : undefined}>地图</a>
+      </nav>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <span class="footer-mark">Wanderlist</span> · 想去的地方，都值得被记住
+    </footer>
+  </body>
+</html>

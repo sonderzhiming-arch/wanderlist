@@ -1,0 +1,302 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { STATUS_META, formatDate, withBase, type Status } from '../lib/utils';
+
+const places = (await getCollection('places')).sort(
+  (a, b) => b.data.addedDate.getTime() - a.data.addedDate.getTime()
+);
+const regions = [...new Set(places.map((p) => p.data.region))];
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+---
+
+<Base title="Wanderlist · 旅行愿望清单">
+  <main class="container">
+    <section class="hero">
+      <p class="hero-kicker">A PERSONAL TRAVEL WISHLIST</p>
+      <h1>想去的地方，<br class="mobile-br" />都值得被记住</h1>
+      <p class="hero-sub">
+        刷到心动的目的地就存进来——是谁安利的、当时为什么想去，连同美景、美食与出发前的功课，一并归档。
+        目前收录 <strong>{places.length}</strong> 个目的地。
+      </p>
+    </section>
+
+    <section class="filters" aria-label="筛选">
+      <div class="filter-group" data-filter="region">
+        <span class="filter-label">地区</span>
+        <button class="chip is-active" data-value="all">全部</button>
+        {regions.map((r) => <button class="chip" data-value={r}>{r}</button>)}
+      </div>
+      <div class="filter-group" data-filter="status">
+        <span class="filter-label">状态</span>
+        <button class="chip is-active" data-value="all">全部</button>
+        {Object.entries(STATUS_META).map(([key, meta]) => (
+          <button class="chip" data-value={key}>{meta.label}</button>
+        ))}
+      </div>
+    </section>
+
+    <section class="gallery">
+      {places.map((place) => {
+        const d = place.data;
+        const status = d.status as Status;
+        const cover = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
+        return (
+          <a
+            class="card"
+            href={`${base}/places/${place.id}/`}
+            data-region={d.region}
+            data-status={status}
+          >
+            <div class="card-cover">
+              {cover ? (
+                <img src={cover} alt={`${d.title}插画`} loading="lazy" />
+              ) : (
+                <div class="card-cover-fallback"><span>{d.title.slice(0, 1)}</span></div>
+              )}
+              <span class={`badge badge-${status}`}>{STATUS_META[status].label}</span>
+            </div>
+            <div class="card-body">
+              <div class="card-title-row">
+                <h2>{d.title}</h2>
+                <span class="card-country">{d.country}</span>
+              </div>
+              <p class="card-motivation">「{d.motivation}」</p>
+              <div class="card-meta">
+                <span>{formatDate(d.addedDate)} 记录</span>
+                <span class="card-region">{d.region}</span>
+              </div>
+            </div>
+          </a>
+        );
+      })}
+    </section>
+
+    <p class="empty-hint" hidden>这个组合下还没有记录，换个筛选试试。</p>
+  </main>
+</Base>
+
+<style>
+  .hero {
+    padding: 3.6rem 0 2.4rem;
+    max-width: 640px;
+  }
+
+  .hero-kicker {
+    margin: 0 0 0.8rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    font-weight: 900;
+    color: var(--ink);
+  }
+
+  .hero-sub {
+    margin: 1.2rem 0 0;
+    color: var(--ink-soft);
+    font-size: 1rem;
+  }
+
+  .hero-sub strong {
+    color: var(--primary);
+    font-family: var(--serif);
+    font-size: 1.2em;
+  }
+
+  .mobile-br {
+    display: none;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.2rem 0 1.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-label {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.2em;
+    margin-right: 0.3rem;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.6rem;
+    padding-bottom: 4rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 2px 4px rgba(74, 56, 36, 0.06), 0 18px 38px -16px rgba(74, 56, 36, 0.38);
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  .card-cover {
+    position: relative;
+    aspect-ratio: 8 / 5;
+    background: var(--paper-deep);
+  }
+
+  .card-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-cover-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #e8cfa8 0%, #d9a441 55%, #a34a2a 130%);
+  }
+
+  .card-cover-fallback span {
+    font-family: var(--serif);
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(255, 251, 240, 0.92);
+  }
+
+  .card-cover .badge {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    box-shadow: 0 2px 8px rgba(60, 44, 26, 0.18);
+  }
+
+  .card-body {
+    padding: 1.1rem 1.25rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 1;
+  }
+
+  .card-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .card-title-row h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .card-country {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+
+  .card-motivation {
+    margin: 0;
+    color: var(--primary-deep);
+    font-family: var(--serif);
+    font-size: 0.98rem;
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--line);
+    padding-top: 0.65rem;
+  }
+
+  .card-region {
+    background: var(--paper-deep);
+    border-radius: 999px;
+    padding: 0.05em 0.8em;
+  }
+
+  .empty-hint {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 2rem 0 4rem;
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding: 2.4rem 0 1.6rem;
+    }
+
+    .mobile-br {
+      display: inline;
+    }
+
+    .gallery {
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+  }
+</style>
+
+<script>
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.card'));
+  const emptyHint = document.querySelector<HTMLElement>('.empty-hint')!;
+  const state: Record<string, string> = { region: 'all', status: 'all' };
+
+  function apply() {
+    let visible = 0;
+    for (const card of cards) {
+      const show =
+        (state.region === 'all' || card.dataset.region === state.region) &&
+        (state.status === 'all' || card.dataset.status === state.status);
+      card.hidden = !show;
+      if (show) visible++;
+    }
+    emptyHint.hidden = visible > 0;
+  }
+
+  document.querySelectorAll<HTMLElement>('.filter-group').forEach((group) => {
+    const key = group.dataset.filter!;
+    const chips = Array.from(group.querySelectorAll<HTMLButtonElement>('.chip'));
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        state[key] = chip.dataset.value!;
+        chips.forEach((c) => c.classList.toggle('is-active', c === chip));
+        apply();
+      });
+    });
+  });
+</script>

@@ -1,0 +1,184 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { STATUS_META } from '../lib/utils';
+
+const places = await getCollection('places');
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
+const points = places.map((p) => ({
+  id: p.id,
+  title: p.data.title,
+  country: p.data.country,
+  motivation: p.data.motivation,
+  status: p.data.status,
+  coords: p.data.coordinates,
+}));
+
+const statusMeta = STATUS_META;
+---
+
+<Base title="地图 · Wanderlist">
+  <link
+    slot="head"
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    slot="head"
+    is:inline
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+  <main class="map-page">
+    <div class="map-bar container">
+      <h1>足迹地图</h1>
+      <div class="legend">
+        {Object.entries(statusMeta).map(([key, meta]) => (
+          <span class="legend-item">
+            <i style={`background:${meta.color}`}></i>
+            {meta.label}
+          </span>
+        ))}
+      </div>
+    </div>
+    <div id="map" aria-label="目的地地图"></div>
+  </main>
+</Base>
+
+<style>
+  .map-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .map-bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-top: 1.3rem;
+    padding-bottom: 1.1rem;
+  }
+
+  .map-bar h1 {
+    font-size: 1.5rem;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.1rem;
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  .legend-item i {
+    width: 0.75em;
+    height: 0.75em;
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 1px rgba(60, 44, 26, 0.25);
+  }
+
+  #map {
+    flex: 1;
+    min-height: 460px;
+    height: calc(100vh - 220px);
+    border-top: 1px solid var(--line);
+    background: var(--paper-deep);
+  }
+
+  /* Leaflet 弹窗排版（全局作用于 leaflet 注入的 DOM） */
+  :global(.leaflet-popup-content-wrapper) {
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px -12px rgba(60, 44, 26, 0.45);
+    font-family: var(--sans);
+  }
+
+  :global(.leaflet-popup-content) {
+    margin: 14px 18px;
+    line-height: 1.65;
+  }
+
+  :global(.popup-title) {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+  }
+
+  :global(.popup-title small) {
+    font-family: var(--sans);
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-left: 0.4em;
+  }
+
+  :global(.popup-motivation) {
+    margin: 0 0 6px;
+    color: var(--primary-deep);
+    font-size: 0.88rem;
+  }
+
+  :global(.popup-link) {
+    font-size: 0.85rem;
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  @media (max-width: 640px) {
+    #map {
+      height: calc(100vh - 250px);
+    }
+  }
+</style>
+
+<script is:inline define:vars={{ points, base, statusMeta }}>
+  const map = L.map('map', { scrollWheelZoom: true, worldCopyJump: true });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  const bounds = [];
+  for (const p of points) {
+    const meta = statusMeta[p.status];
+    const marker = L.circleMarker(p.coords, {
+      radius: 9,
+      color: '#fffdf8',
+      weight: 2.5,
+      fillColor: meta.color,
+      fillOpacity: 0.95,
+    }).addTo(map);
+
+    marker.bindPopup(
+      `<p class="popup-title">${p.title}<small>${p.country} · ${meta.label}</small></p>` +
+        `<p class="popup-motivation">「${p.motivation}」</p>` +
+        `<a class="popup-link" href="${base}/places/${p.id}/">查看档案 →</a>`
+    );
+    marker.bindTooltip(p.title, { direction: 'top', offset: [0, -8] });
+    bounds.push(p.coords);
+  }
+
+  if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 6 });
+  } else {
+    map.setView([30, 105], 3);
+  }
+</script>

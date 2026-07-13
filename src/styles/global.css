@@ -1,0 +1,222 @@
+/* ============ Wanderlist 全局样式 ============ */
+
+:root {
+  --paper: #f9f4ea;        /* 米白纸面 */
+  --paper-deep: #f1e7d6;   /* 深一度的纸面 */
+  --card: #fffdf8;
+  --ink: #38302a;          /* 深褐墨色 */
+  --ink-soft: #7a6c5f;
+  --line: #e4d8c4;
+  --primary: #a34a2a;      /* 赭红主题色 */
+  --primary-deep: #843a20;
+  --accent: #d9a441;       /* 暖金 */
+
+  --badge-wishlist-bg: #f7e6ba;
+  --badge-wishlist-fg: #8a6210;
+  --badge-planning-bg: #d2eae5;
+  --badge-planning-fg: #1d6f66;
+  --badge-visited-bg: #dde3d1;
+  --badge-visited-fg: #56653f;
+
+  --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+
+  --shadow-card: 0 1px 2px rgba(74, 56, 36, 0.06), 0 10px 28px -14px rgba(74, 56, 36, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--ink);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--serif);
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---------- 页头 ---------- */
+
+.site-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.4rem 1.5rem 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  color: var(--ink);
+}
+
+.brand-en {
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+
+.brand-zh {
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  color: var(--ink-soft);
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.6rem;
+  font-size: 0.95rem;
+}
+
+.site-nav a {
+  color: var(--ink-soft);
+  padding-bottom: 0.15rem;
+  white-space: nowrap;
+}
+
+.site-nav a[aria-current='page'] {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+  font-weight: 500;
+}
+
+.site-nav a:hover {
+  color: var(--primary);
+}
+
+.brand-en {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .brand-zh {
+    display: none;
+  }
+
+  .site-header {
+    align-items: center;
+  }
+}
+
+/* ---------- 页脚 ---------- */
+
+.site-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  padding: 2rem 1.5rem 2.6rem;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.site-footer .footer-mark {
+  font-family: var(--serif);
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 状态徽章 ---------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.18em 0.85em;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+}
+
+.badge-wishlist {
+  background: var(--badge-wishlist-bg);
+  color: var(--badge-wishlist-fg);
+}
+
+.badge-planning {
+  background: var(--badge-planning-bg);
+  color: var(--badge-planning-fg);
+}
+
+.badge-visited {
+  background: var(--badge-visited-bg);
+  color: var(--badge-visited-fg);
+}
+
+/* ---------- 筛选 chips ---------- */
+
+.chip {
+  font: inherit;
+  font-size: 0.86rem;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.28em 1em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.chip.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff8ef;
+}
+
+/* ---------- 通用容器 ---------- */
+
+.container {
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
