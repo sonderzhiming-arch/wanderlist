@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="阿勒泰：禾木木屋、雪山与白桦插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 太阳（毡房纹样太阳） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <circle cx="648" cy="120" r="46" fill="#d9a441" stroke-width="5"/>
+    <path d="M 620 120 Q 648 92 676 120 Q 648 148 620 120 Z" fill="none" stroke-width="4"/>
+    <circle cx="648" cy="120" r="7" fill="#9c4a2f" stroke="none"/>
+  </g>
+
+  <!-- 远景雪山（阿尔泰山） -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 40 300 Q 120 196 190 244 Q 236 180 310 236 Q 356 208 400 250"/>
+    <path d="M 452 252 Q 520 188 584 234 Q 646 200 750 282"/>
+    <path d="M 216 212 L 236 232 M 252 200 L 268 222" stroke-width="4"/>
+    <path d="M 506 214 L 522 232 M 538 206 L 552 226" stroke-width="4"/>
+  </g>
+
+  <!-- 地面 -->
+  <path d="M 60 452 Q 400 442 740 452" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 400 470 Q 550 466 690 470" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+
+  <!-- 禾木图瓦人小木屋（主体） -->
+  <g stroke="#9c4a2f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 尖顶 -->
+    <path d="M 268 322 L 400 224 L 532 322 Z"/>
+    <path d="M 300 322 L 400 248 L 500 322" stroke-width="4"/>
+    <!-- 烟囱与炊烟 -->
+    <path d="M 452 262 L 452 226 L 474 226 L 474 280"/>
+    <path d="M 462 210 Q 452 196 464 184 Q 476 172 468 158" stroke-width="4" opacity="0.6"/>
+    <!-- 木屋墙体：原木横线 -->
+    <path d="M 288 322 L 288 450 M 512 322 L 512 450"/>
+    <line x1="288" y1="356" x2="512" y2="356" stroke-width="4"/>
+    <line x1="288" y1="388" x2="512" y2="388" stroke-width="4"/>
+    <line x1="288" y1="420" x2="512" y2="420" stroke-width="4"/>
+    <!-- 门 -->
+    <path d="M 376 450 L 376 372 Q 400 358 424 372 L 424 450" stroke-width="5"/>
+    <!-- 窗（暖金灯光） -->
+    <rect x="312" y="368" width="40" height="40" fill="#d9a441" stroke-width="4"/>
+    <line x1="332" y1="368" x2="332" y2="408" stroke-width="4"/>
+    <rect x="448" y="368" width="40" height="40" fill="#d9a441" stroke-width="4"/>
+    <line x1="448" y1="388" x2="488" y2="388" stroke-width="4"/>
+  </g>
+
+  <!-- 白桦树（左） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <path d="M 148 452 Q 144 380 150 302" fill="none" stroke-width="5"/>
+    <path d="M 150 316 Q 122 282 138 226 Q 160 270 150 316 Z" fill="#d9a441" stroke="#d9a441" stroke-width="5" stroke-linejoin="round"/>
+    <line x1="146" y1="420" x2="152" y2="420" stroke-width="4"/>
+    <line x1="145" y1="386" x2="151" y2="386" stroke-width="4"/>
+    <line x1="146" y1="352" x2="152" y2="352" stroke-width="4"/>
+  </g>
+
+  <!-- 白桦树（右） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <path d="M 664 452 Q 668 396 662 330" fill="none" stroke-width="5"/>
+    <path d="M 662 342 Q 638 312 652 262 Q 672 302 662 342 Z" fill="#d9a441" stroke="#d9a441" stroke-width="5" stroke-linejoin="round"/>
+    <line x1="661" y1="424" x2="667" y2="424" stroke-width="4"/>
+    <line x1="660" y1="392" x2="666" y2="392" stroke-width="4"/>
+  </g>
+
+  <!-- 额尔齐斯河 / 月亮湾曲线 -->
+  <path d="M 62 486 Q 180 470 300 482 Q 430 494 560 480 Q 660 470 738 482"
+        fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+</svg>
