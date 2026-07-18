@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="徽州：马头墙民居、黄山迎客松与月沼插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 太阳（黄山烧饼太阳：撒了芝麻） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <circle cx="656" cy="112" r="44" fill="#d9a441" stroke-width="5"/>
+    <circle cx="656" cy="112" r="28" fill="none" stroke-width="4" opacity="0.55"/>
+    <path d="M 640 100 L 644 102 M 664 92 L 668 94 M 674 116 L 678 118 M 646 124 L 650 126 M 660 108 L 664 110" stroke-width="4"/>
+  </g>
+
+  <!-- 远景黄山群峰与迎客松 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 36 292 Q 90 214 132 252 Q 158 184 208 240 Q 244 210 282 254"/>
+    <path d="M 470 250 Q 520 176 566 228 Q 604 194 656 246 Q 700 220 756 272"/>
+    <!-- 迎客松：斜出的横枝 -->
+    <path d="M 560 224 L 560 186" stroke-width="4"/>
+    <path d="M 560 196 Q 596 188 626 196 M 560 188 Q 534 180 518 186" stroke-width="4"/>
+    <!-- 山间云海 -->
+    <path d="M 320 258 Q 356 244 392 258 Q 428 272 462 258" stroke-width="4"/>
+  </g>
+
+  <!-- 地面 -->
+  <path d="M 56 452 Q 400 442 744 452" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 120 470 Q 300 466 460 470" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+
+  <!-- 马头墙民居（主体） -->
+  <g stroke="#9c4a2f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 右侧稍矮的一进（先画，被前屋遮挡） -->
+    <path d="M 508 450 L 508 336 M 636 450 L 636 372" stroke-width="5"/>
+    <path d="M 486 338 Q 544 326 600 338 M 486 338 Q 478 330 474 320 M 600 338 Q 608 330 612 320" stroke-width="5"/>
+    <path d="M 596 340 L 596 372 M 578 374 Q 626 364 668 374 M 668 374 Q 676 366 680 356" stroke-width="5"/>
+    <rect x="540" y="392" width="38" height="38" fill="#d9a441" stroke-width="4"/>
+    <line x1="540" y1="411" x2="578" y2="411" stroke-width="4"/>
+
+    <!-- 主屋：三叠式马头墙 -->
+    <path d="M 262 450 L 262 352 M 458 450 L 458 352"/>
+    <!-- 左低叠 -->
+    <path d="M 236 352 Q 292 340 346 352 M 236 352 Q 228 344 224 334"/>
+    <!-- 中高叠 -->
+    <path d="M 340 350 L 340 300 M 316 302 Q 368 288 420 302 M 316 302 Q 308 294 302 284 M 420 302 Q 428 294 434 284"/>
+    <!-- 右低叠 -->
+    <path d="M 416 304 L 416 352 M 396 354 Q 442 344 486 354 M 486 354 Q 494 346 498 336"/>
+    <!-- 门罩与大门 -->
+    <path d="M 320 450 L 320 380 L 400 380 L 400 450" stroke-width="5"/>
+    <path d="M 306 376 Q 360 366 414 376" stroke-width="5"/>
+    <circle cx="352" cy="416" r="4" fill="#9c4a2f" stroke="none"/>
+    <circle cx="368" cy="416" r="4" fill="#9c4a2f" stroke="none"/>
+    <!-- 花窗（暖金灯光） -->
+    <rect x="282" y="392" width="30" height="34" fill="#d9a441" stroke-width="4"/>
+    <line x1="297" y1="392" x2="297" y2="426" stroke-width="4"/>
+    <rect x="368" y="318" width="30" height="30" fill="#d9a441" stroke-width="4"/>
+    <line x1="368" y1="333" x2="398" y2="333" stroke-width="4"/>
+  </g>
+
+  <!-- 檐角灯笼 -->
+  <g stroke="#9c4a2f" stroke-width="4" stroke-linecap="round">
+    <line x1="236" y1="352" x2="236" y2="376"/>
+    <ellipse cx="236" cy="390" rx="12" ry="14" fill="#d9a441"/>
+    <line x1="236" y1="404" x2="236" y2="412"/>
+  </g>
+
+  <!-- 月沼水面与画桥 -->
+  <path d="M 60 486 Q 190 474 320 484 Q 460 494 590 480 Q 670 472 742 482"
+        fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M 96 482 Q 130 448 166 482" fill="none" stroke="#9c4a2f" stroke-width="5"
+        stroke-linecap="round" opacity="0.7"/>
+
+  <!-- 门前小松（呼应迎客松） -->
+  <g stroke="#9c4a2f" stroke-linecap="round" fill="none">
+    <path d="M 700 450 Q 698 420 702 396" stroke-width="5"/>
+    <path d="M 702 402 Q 672 396 656 402 M 702 396 Q 728 388 744 394 M 702 412 Q 680 408 668 412" stroke-width="4"/>
+  </g>
+</svg>
