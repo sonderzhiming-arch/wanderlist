@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="溪屿湾：林荫溪流中划皮划艇插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 太阳（救生圈当太阳：夏天玩水的太阳） -->
+  <g stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="664" cy="104" r="46" fill="#d9a441" stroke-width="6"/>
+    <circle cx="664" cy="104" r="22" fill="#f6efe2" stroke-width="5"/>
+    <path d="M 664 58 L 664 76 M 710 104 L 692 104 M 664 150 L 664 132 M 618 104 L 636 104" stroke-width="5"/>
+  </g>
+
+  <!-- 远景山脊与河谷 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 24 268 Q 88 190 142 236 Q 186 178 244 232 Q 288 204 336 244"/>
+    <path d="M 448 244 Q 508 182 560 230 Q 606 198 664 246 Q 716 228 776 262"/>
+    <path d="M 340 262 Q 380 250 420 262 Q 458 274 496 260" stroke-width="4"/>
+  </g>
+
+  <!-- 河面：一实一虚 -->
+  <path d="M 40 434 Q 400 420 760 434" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 110 464 Q 400 458 690 464" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+
+  <!-- 浅滩水纹（暖金） -->
+  <g fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <path d="M 96 410 Q 124 400 152 410 Q 180 420 208 410"/>
+    <path d="M 596 414 Q 624 404 652 414 Q 680 424 708 414"/>
+    <path d="M 268 480 Q 306 470 344 480 Q 382 490 420 480 Q 458 470 496 480"/>
+  </g>
+
+  <!-- 皮划艇（主体） -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 船身 -->
+    <path d="M 236 390 Q 400 360 564 390" stroke-width="6"/>
+    <path d="M 236 390 Q 400 434 564 390" stroke-width="6"/>
+    <ellipse cx="400" cy="382" rx="54" ry="11" fill="#d9a441" stroke-width="5"/>
+    <!-- 翘起的船首船尾 -->
+    <path d="M 236 390 Q 224 380 214 374 M 564 390 Q 576 380 586 374" stroke-width="5"/>
+    <!-- 桨手 -->
+    <circle cx="400" cy="312" r="17" stroke-width="5"/>
+    <path d="M 400 329 L 400 372" stroke-width="6"/>
+    <path d="M 400 344 L 344 366 M 400 344 L 458 328" stroke-width="5"/>
+    <!-- 船桨 -->
+    <path d="M 330 372 L 476 320" stroke-width="5"/>
+    <ellipse cx="316" cy="377" rx="17" ry="10" fill="#d9a441" stroke-width="4" transform="rotate(-20 316 377)"/>
+    <ellipse cx="490" cy="315" rx="17" ry="10" fill="#d9a441" stroke-width="4" transform="rotate(-20 490 315)"/>
+    <!-- 溅起的水花 -->
+    <path d="M 300 396 Q 288 386 292 374 M 510 340 Q 522 332 534 336" stroke-width="4" opacity="0.8"/>
+  </g>
+
+  <!-- 左侧大树（八百米林荫绿道） -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 92 440 Q 88 372 96 312" stroke-width="7"/>
+    <path d="M 94 356 Q 62 340 44 344 M 96 336 Q 130 318 152 324" stroke-width="5"/>
+    <path d="M 96 316 Q 40 306 34 258 Q 30 210 82 202 Q 116 168 156 200 Q 200 208 190 254 Q 188 300 132 312 Q 114 320 96 316"
+          stroke-width="6"/>
+    <circle cx="70" cy="252" r="8" fill="#d9a441" stroke="none"/>
+    <circle cx="146" cy="238" r="7" fill="#d9a441" stroke="none"/>
+    <circle cx="108" cy="216" r="6" fill="#d9a441" stroke="none"/>
+  </g>
+
+  <!-- 右侧小树 -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 742 442 Q 740 400 744 366" stroke-width="6"/>
+    <path d="M 744 368 Q 700 358 700 322 Q 702 292 740 292 Q 782 286 788 322 Q 792 356 744 368" stroke-width="5"/>
+    <circle cx="722" cy="322" r="6" fill="#d9a441" stroke="none"/>
+  </g>
+
+  <!-- 蜻蜓 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="4" stroke-linecap="round">
+    <path d="M 592 246 L 628 254"/>
+    <path d="M 606 248 Q 600 232 584 232 M 610 250 Q 606 268 590 272"/>
+  </g>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="隐水洞：溶洞钟乳石与暗河小船插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 太阳（留在洞外，一束光斜射进洞口） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <circle cx="120" cy="92" r="40" fill="#d9a441" stroke-width="6"/>
+    <path d="M 120 34 L 120 46 M 172 60 L 162 68 M 178 92 L 166 92 M 68 60 L 78 68 M 62 92 L 74 92" stroke-width="5"/>
+  </g>
+  <g fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.75">
+    <path d="M 158 124 L 268 240" stroke-dasharray="16 14"/>
+    <path d="M 186 108 L 316 232" stroke-dasharray="16 14"/>
+  </g>
+
+  <!-- 远景山体轮廓（洞在山肚子里） -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 20 214 Q 108 130 196 186 Q 268 116 348 178 Q 420 122 496 176 Q 592 116 676 182 Q 736 154 788 198"/>
+  </g>
+
+  <!-- 洞穴主体：拱形洞腔 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 128 452 L 128 316 Q 244 168 400 158 Q 560 150 676 306 L 676 452"/>
+  </g>
+
+  <!-- 洞顶钟乳石 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 176 268 L 194 336 L 212 272"/>
+    <path d="M 228 220 L 244 316 L 262 226"/>
+    <path d="M 296 186 L 312 288 L 330 192"/>
+    <path d="M 372 170 L 388 252 L 404 174"/>
+    <path d="M 448 174 L 464 300 L 480 180"/>
+    <path d="M 524 200 L 540 268 L 556 208"/>
+    <path d="M 594 246 L 610 320 L 626 254"/>
+  </g>
+  <!-- 石幔（金瀑布、银瀑布） -->
+  <g fill="none" stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <path d="M 336 196 Q 330 250 340 302 M 356 198 Q 350 254 360 306"/>
+    <path d="M 496 200 Q 490 248 500 292"/>
+  </g>
+
+  <!-- 洞底石笋 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 190 452 L 206 388 L 222 452"/>
+    <path d="M 556 452 L 572 380 L 588 452"/>
+    <path d="M 620 452 L 632 406 L 644 452"/>
+  </g>
+
+  <!-- 暗河（一实一虚） -->
+  <path d="M 150 440 Q 400 424 656 440" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 196 470 Q 404 464 616 470" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+  <path d="M 236 456 Q 268 448 300 456 Q 332 464 364 456" fill="none" stroke="#d9a441"
+        stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- 暗河小船与船客 -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 330 414 Q 420 400 510 414" stroke-width="6"/>
+    <path d="M 330 414 Q 420 442 510 414" stroke-width="6"/>
+    <circle cx="398" cy="378" r="13" stroke-width="5"/>
+    <path d="M 398 391 L 398 410 M 398 398 L 372 404" stroke-width="5"/>
+    <circle cx="450" cy="382" r="12" stroke-width="5"/>
+    <path d="M 450 394 L 450 410" stroke-width="5"/>
+    <!-- 撑篙 -->
+    <path d="M 366 400 L 320 452" stroke-width="5"/>
+  </g>
+
+  <!-- 洞顶落下的水滴 -->
+  <g stroke="none" fill="#d9a441">
+    <circle cx="312" cy="326" r="6"/>
+    <circle cx="464" cy="336" r="5"/>
+    <circle cx="244" cy="348" r="4"/>
+  </g>
+
+  <!-- 洞外的一株枇杷（大畈特产） -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 736 452 Q 734 412 740 384" stroke-width="6"/>
+    <path d="M 740 386 Q 700 376 700 342 Q 702 314 740 314 Q 780 308 784 342 Q 788 374 740 386" stroke-width="5"/>
+    <circle cx="722" cy="344" r="7" fill="#d9a441" stroke="none"/>
+    <circle cx="754" cy="332" r="6" fill="#d9a441" stroke="none"/>
+  </g>
+</svg>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="九宫山：云海中的风车群与藏在雾里的日出插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 太阳（被雾遮住的日出：只露出半个，云线压在上面） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <circle cx="640" cy="128" r="44" fill="#d9a441" stroke-width="6"/>
+    <path d="M 640 70 L 640 58 M 690 82 L 698 74 M 700 128 L 712 128 M 590 82 L 582 74" stroke-width="5" opacity="0.6"/>
+  </g>
+  <!-- 遮住太阳的云 -->
+  <g fill="#f6efe2" stroke="#9c4a2f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 546 152 Q 578 122 614 140 Q 642 110 682 132 Q 726 128 730 156 Q 700 176 646 170 Q 588 176 546 152 Z"/>
+  </g>
+
+  <!-- 远景群峰 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 20 268 Q 88 176 150 232 Q 202 158 262 226 Q 316 186 368 240"/>
+    <path d="M 430 246 Q 494 176 552 232 Q 616 190 672 248 Q 726 224 782 268"/>
+  </g>
+
+  <!-- 云海（山脊之间翻涌） -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" opacity="0.55">
+    <path d="M 60 306 Q 108 288 156 306 Q 204 324 252 306 Q 300 288 348 306"/>
+    <path d="M 420 312 Q 468 294 516 312 Q 564 330 612 312 Q 660 296 716 314"/>
+    <path d="M 150 344 Q 210 328 270 344 Q 330 360 390 344 Q 450 330 510 346" opacity="0.7"/>
+  </g>
+
+  <!-- 主峰山脊 -->
+  <path d="M 96 430 Q 214 314 296 352 Q 372 258 452 336 Q 528 288 596 356 Q 668 320 736 428"
+        fill="none" stroke="#9c4a2f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 风电机（主体：山脊上的三叶风车） -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 大风车 -->
+    <path d="M 386 430 L 380 236" stroke-width="7"/>
+    <circle cx="380" cy="230" r="10" fill="#d9a441" stroke-width="5"/>
+    <path d="M 380 230 Q 388 168 414 128 M 380 230 Q 434 250 480 240 M 380 230 Q 336 262 306 300" stroke-width="6"/>
+    <!-- 中风车 -->
+    <path d="M 524 402 L 520 288" stroke-width="6"/>
+    <circle cx="520" cy="284" r="8" fill="#d9a441" stroke-width="4"/>
+    <path d="M 520 284 Q 526 240 544 214 M 520 284 Q 558 296 588 290 M 520 284 Q 490 306 470 332" stroke-width="5"/>
+    <!-- 小风车（隐在雾里） -->
+    <g opacity="0.45">
+      <path d="M 236 396 L 234 320" stroke-width="5"/>
+      <circle cx="234" cy="316" r="6" stroke-width="4"/>
+      <path d="M 234 316 Q 238 286 250 268 M 234 316 Q 262 324 282 320 M 234 316 Q 212 332 200 350" stroke-width="4"/>
+    </g>
+  </g>
+
+  <!-- 云中湖（高山湖泊）与地面双线 -->
+  <path d="M 48 448 Q 400 436 752 448" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 120 472 Q 400 466 680 472" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+  <path d="M 176 460 Q 232 450 288 460 Q 344 470 400 460 Q 456 450 512 460" fill="none"
+        stroke="#d9a441" stroke-width="5" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- 山间杉树 -->
+  <g fill="none" stroke="#9c4a2f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 690 440 L 690 388" stroke-width="6"/>
+    <path d="M 690 386 L 656 386 L 690 328 L 724 386 Z" stroke-width="5"/>
+    <path d="M 690 346 L 664 366 M 690 346 L 716 366" stroke-width="4"/>
+    <path d="M 108 442 L 108 402" stroke-width="5"/>
+    <path d="M 108 400 L 82 400 L 108 356 L 134 400 Z" stroke-width="5"/>
+  </g>
+
+  <!-- 山道上的一盏灯（凌晨四点半去等日出的人） -->
+  <g stroke="#9c4a2f" stroke-width="4" stroke-linecap="round">
+    <circle cx="612" cy="416" r="9" fill="#d9a441"/>
+    <path d="M 612 407 L 612 398"/>
+  </g>
+</svg>
