@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="格陵兰：峡湾冰山、帆船与午夜太阳插画">
+  <!-- Wanderlist 插画规范：米色底 #f6efe2 / 主线 #9c4a2f / 点缀 #d9a441，手绘线稿风 -->
+  <rect width="800" height="500" fill="#f6efe2"/>
+
+  <!-- 午夜太阳（贴着地平线不落下） -->
+  <g stroke="#9c4a2f" stroke-linecap="round">
+    <circle cx="640" cy="176" r="44" fill="#d9a441" stroke-width="5"/>
+    <path d="M 572 176 L 592 176 M 688 176 L 708 176 M 640 108 L 640 124" fill="none" stroke-width="4" opacity="0.6"/>
+  </g>
+
+  <!-- 极光（淡淡一抹） -->
+  <path d="M 70 110 Q 160 70 250 104 Q 330 134 420 92" fill="none" stroke="#d9a441"
+        stroke-width="5" stroke-linecap="round" stroke-dasharray="14 12" opacity="0.7"/>
+
+  <!-- 远景峡湾岩壁 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.35">
+    <path d="M 30 300 Q 70 230 120 250 Q 150 196 204 232 Q 240 212 270 296"/>
+    <path d="M 520 296 Q 560 240 606 256 Q 660 214 712 250 Q 744 262 772 300"/>
+  </g>
+
+  <!-- 冰山（主体） -->
+  <g stroke="#9c4a2f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 250 330 L 292 250 Q 310 222 330 236 L 368 170 Q 382 150 398 172 L 430 222 Q 446 206 462 226 L 506 290 L 540 330"/>
+    <!-- 冰面切面 -->
+    <path d="M 368 170 L 382 262 L 430 222" stroke-width="4"/>
+    <path d="M 330 236 L 350 300" stroke-width="4" opacity="0.7"/>
+    <path d="M 462 226 L 470 300" stroke-width="4" opacity="0.7"/>
+    <!-- 水下部分（虚线，冰山一角） -->
+    <path d="M 270 348 Q 300 420 400 436 Q 500 424 524 348" stroke-width="4" stroke-dasharray="2 14" opacity="0.5"/>
+  </g>
+
+  <!-- 海面双线 -->
+  <path d="M 40 332 Q 400 322 760 332" fill="none" stroke="#9c4a2f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 90 358 Q 250 352 400 358 M 560 356 Q 660 350 730 358" fill="none" stroke="#9c4a2f" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="2 18" opacity="0.5"/>
+
+  <!-- 帆船 -->
+  <g stroke="#9c4a2f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 612 322 L 612 212" fill="none"/>
+    <path d="M 612 220 Q 660 262 664 306 L 612 306 Z" fill="#d9a441"/>
+    <path d="M 606 232 Q 576 272 578 306 L 606 306 Z" fill="none" stroke-width="4"/>
+    <path d="M 570 316 L 680 316 Q 668 338 636 340 L 590 340 Q 576 334 570 316 Z" fill="none"/>
+  </g>
+
+  <!-- 小浮冰 -->
+  <g fill="none" stroke="#9c4a2f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 120 334 L 138 312 Q 148 304 158 316 L 172 334"/>
+    <path d="M 196 384 Q 214 374 236 384"/>
+    <path d="M 480 392 Q 500 382 526 392"/>
+  </g>
+
+  <!-- 午夜阳光倒影 -->
+  <path d="M 616 372 L 664 372 M 626 392 L 654 392 M 634 410 L 646 410" fill="none" stroke="#d9a441"
+        stroke-width="5" stroke-linecap="round"/>
+
+  <!-- 海豹探头 -->
+  <g stroke="#9c4a2f" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M 118 452 Q 118 420 140 418 Q 160 420 158 452"/>
+    <circle cx="146" cy="428" r="2.5" fill="#9c4a2f" stroke="none"/>
+    <path d="M 98 456 Q 138 446 178 456" opacity="0.6"/>
+  </g>
+</svg>
