@@ -1,8 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
 import { marked } from 'marked';
+import Lightbox from '../../components/Lightbox.astro';
+import PhotoMosaic from '../../components/PhotoMosaic.astro';
 import Base from '../../layouts/Base.astro';
-import { STATUS_META, formatDate, withBase, type Status } from '../../lib/utils';
+import { ogImageUrl } from '../../lib/photos';
+import { BASE, STATUS_META, formatDate, withBase, type Status } from '../../lib/utils';
 
 export async function getStaticPaths() {
   const places = await getCollection('places');
@@ -12,9 +15,9 @@ export async function getStaticPaths() {
 const { place } = Astro.props;
 const d = place.data;
 const status = d.status as Status;
-const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 
 const banner = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
+const ogImage = d.photos[0] ? await ogImageUrl(d.photos[0], Astro.site) : undefined;
 
 // 正文按二级标题拆分：美景 / 人文 / 美食 进主栏，「出发前 checklist」进侧栏
 const sections = (place.body ?? '')
@@ -32,11 +35,11 @@ const checklist = sections.find((s) => s.heading.toLowerCase().includes('checkli
 const mainSections = sections.filter((s) => s !== checklist);
 ---
 
-<Base title={`${d.title} · Wanderlist`} description={d.motivation}>
+<Base title={`${d.title} · Wanderlist`} description={d.motivation} image={ogImage} type="article">
   <main>
     <div class="banner">
       {banner ? (
-        <img src={banner} alt={`${d.title}插画`} />
+        <img src={banner} alt={`${d.title}插画`} width="800" height="500" />
       ) : (
         <div class="banner-fallback"><span>{d.title}</span></div>
       )}
@@ -60,6 +63,7 @@ const mainSections = sections.filter((s) => s !== checklist);
 
       <div class="article-grid">
         <article class="article-main">
+          <PhotoMosaic photos={d.photos} />
           {mainSections.map((section) => (
             <section class="prose-section">
               <h2>{section.heading}</h2>
@@ -95,9 +99,10 @@ const mainSections = sections.filter((s) => s !== checklist);
         <footer>—— 记录于 {formatDate(d.addedDate)}</footer>
       </blockquote>
 
-      <p class="back-link"><a href={`${base}/`}>← 返回清单</a></p>
+      <p class="back-link"><a href={`${BASE}/`}>← 返回清单</a></p>
     </div>
   </main>
+  {d.photos.length > 0 && <Lightbox />}
 </Base>
 
 <style>

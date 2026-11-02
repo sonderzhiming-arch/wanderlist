@@ -1,0 +1,258 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Lightbox from '../components/Lightbox.astro';
+import Base from '../layouts/Base.astro';
+import { preparePhotos, widthsFor } from '../lib/photos';
+import { BASE, STATUS_META, type Status } from '../lib/utils';
+
+const places = (await getCollection('places'))
+  .filter((p) => p.data.photos.length > 0)
+  .sort((a, b) => b.data.addedDate.getTime() - a.data.addedDate.getTime());
+
+const groups = await Promise.all(
+  places.map(async (place) => ({ place, photos: await preparePhotos(place.data.photos) }))
+);
+const total = groups.reduce((sum, g) => sum + g.photos.length, 0);
+---
+
+<Base title="相册 · Wanderlist" description="出发之前，先看看那里的样子。">
+  <main class="container">
+    <section class="wall-hero">
+      <p class="wall-kicker">PHOTO ALBUM</p>
+      <h1>出发之前，先看看那里的样子</h1>
+      {
+        total > 0 ? (
+          <p class="wall-sub">
+            收录 <strong>{total}</strong> 张照片，来自 <strong>{groups.length}</strong> 个目的地。点开任意一张，可以左右翻看。
+          </p>
+        ) : null
+      }
+    </section>
+
+    {
+      total === 0 ? (
+        <div class="wall-empty">
+          <p class="wall-empty-title">相册还是空的</p>
+          <p>
+            添加目的地时会自动从维基共享资源配上几张当地照片；去过的地方，也可以放上自己拍的。
+          </p>
+        </div>
+      ) : (
+        <div data-gallery>
+          {groups.map(({ place, photos }) => {
+            const status = place.data.status as Status;
+            const href = `${BASE}/places/${place.id}/`;
+            return (
+              <section class="wall-group" aria-labelledby={`g-${place.id}`}>
+                <header class="wall-group-head">
+                  <h2 id={`g-${place.id}`}>
+                    <a href={href}>{place.data.title}</a>
+                  </h2>
+                  <span class="wall-country">{place.data.country}</span>
+                  <span class={`badge badge-${status}`}>{STATUS_META[status].label}</span>
+                  <a class="wall-more" href={href}>
+                    查看档案 →
+                  </a>
+                </header>
+                <div class="wall-grid">
+                  {photos.map((photo) => (
+                    <a
+                      class="wall-item"
+                      href={photo.full.url}
+                      data-lightbox
+                      data-w={photo.full.width}
+                      data-h={photo.full.height}
+                      data-caption={`${place.data.title} · ${photo.caption}`}
+                      data-byline={photo.byline || undefined}
+                      data-source={photo.sourceUrl}
+                    >
+                      <span class="wall-thumb">
+                        <Image
+                          src={photo.src}
+                          alt={photo.caption}
+                          widths={widthsFor(photo.src, [360, 540, 720])}
+                          sizes="(max-width: 640px) 46vw, 270px"
+                          loading="lazy"
+                        />
+                      </span>
+                      <span class="wall-caption">{photo.caption}</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      )
+    }
+  </main>
+  {total > 0 && <Lightbox />}
+</Base>
+
+<style>
+  .wall-hero {
+    padding: 3.2rem 0 2rem;
+    max-width: 680px;
+  }
+
+  .wall-kicker {
+    margin: 0 0 0.8rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .wall-hero h1 {
+    font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+    font-weight: 900;
+  }
+
+  .wall-sub {
+    margin: 1rem 0 0;
+    color: var(--ink-soft);
+  }
+
+  .wall-sub strong {
+    color: var(--primary);
+    font-family: var(--serif);
+    font-size: 1.15em;
+  }
+
+  .wall-empty {
+    margin: 0 0 4rem;
+    padding: 2.6rem 1.6rem;
+    border: 1.5px dashed var(--line);
+    border-radius: 16px;
+    text-align: center;
+    color: var(--ink-soft);
+    background: var(--card);
+  }
+
+  .wall-empty p {
+    margin: 0;
+  }
+
+  .wall-empty-title {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.4rem !important;
+  }
+
+  .wall-group {
+    padding: 1.6rem 0 2rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .wall-group:last-child {
+    padding-bottom: 4rem;
+  }
+
+  .wall-group-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .wall-group-head h2 {
+    font-size: 1.45rem;
+  }
+
+  .wall-group-head h2 a {
+    color: var(--ink);
+  }
+
+  .wall-group-head h2 a:hover {
+    color: var(--primary);
+  }
+
+  .wall-country {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .wall-group-head .badge {
+    align-self: center;
+  }
+
+  .wall-more {
+    margin-left: auto;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .wall-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.1rem;
+  }
+
+  .wall-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: var(--ink-soft);
+  }
+
+  .wall-thumb {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--paper-deep);
+    box-shadow: var(--shadow-card);
+  }
+
+  .wall-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
+  }
+
+  .wall-item:hover .wall-thumb :global(img) {
+    transform: scale(1.05);
+  }
+
+  .wall-item:focus-visible {
+    outline: none;
+  }
+
+  .wall-item:focus-visible .wall-thumb {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .wall-caption {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .wall-item:hover .wall-caption {
+    color: var(--primary);
+  }
+
+  @media (max-width: 640px) {
+    .wall-hero {
+      padding: 2.2rem 0 1.4rem;
+    }
+
+    .wall-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem 0.7rem;
+    }
+
+    .wall-more {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>

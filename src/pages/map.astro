@@ -1,43 +1,36 @@
 ---
+import { getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { STATUS_META } from '../lib/utils';
+import { BASE, STATUS_META } from '../lib/utils';
 
 const places = await getCollection('places');
-const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 
-const points = places.map((p) => ({
-  id: p.id,
-  title: p.data.title,
-  country: p.data.country,
-  motivation: p.data.motivation,
-  status: p.data.status,
-  coords: p.data.coordinates,
-}));
-
-const statusMeta = STATUS_META;
+const points = await Promise.all(
+  places.map(async (p) => {
+    const photo = p.data.photos[0];
+    const thumb = photo
+      ? await getImage({ src: photo.src, width: Math.min(photo.src.width, 480), format: 'webp' })
+      : null;
+    return {
+      title: p.data.title,
+      country: p.data.country,
+      motivation: p.data.motivation,
+      status: p.data.status,
+      coords: p.data.coordinates,
+      href: `${BASE}/places/${p.id}/`,
+      photo: thumb?.src ?? null,
+    };
+  })
+);
 ---
 
 <Base title="地图 · Wanderlist">
-  <link
-    slot="head"
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    slot="head"
-    is:inline
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
-
   <main class="map-page">
     <div class="map-bar container">
       <h1>足迹地图</h1>
       <div class="legend">
-        {Object.entries(statusMeta).map(([key, meta]) => (
+        {Object.values(STATUS_META).map((meta) => (
           <span class="legend-item">
             <i style={`background:${meta.color}`}></i>
             {meta.label}
@@ -45,7 +38,7 @@ const statusMeta = STATUS_META;
         ))}
       </div>
     </div>
-    <div id="map" aria-label="目的地地图"></div>
+    <div id="map" aria-label="目的地地图" data-points={JSON.stringify(points)}></div>
   </main>
 </Base>
 
@@ -114,27 +107,38 @@ const statusMeta = STATUS_META;
     line-height: 1.65;
   }
 
-  :global(.popup-title) {
+  :global(.popup-photo) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 2px 0 10px;
+    background: var(--paper-deep);
+  }
+
+  /* 加上 .leaflet-popup-content 前缀，才能盖过 Leaflet 自带的段落间距和蓝色链接 */
+  :global(.leaflet-popup-content .popup-title) {
     font-family: var(--serif);
     font-size: 1.05rem;
     font-weight: 700;
     margin: 0 0 2px;
   }
 
-  :global(.popup-title small) {
+  :global(.leaflet-popup-content .popup-title small) {
     font-family: var(--sans);
     font-weight: 400;
     color: var(--ink-soft);
     margin-left: 0.4em;
   }
 
-  :global(.popup-motivation) {
+  :global(.leaflet-popup-content .popup-motivation) {
     margin: 0 0 6px;
     color: var(--primary-deep);
     font-size: 0.88rem;
   }
 
-  :global(.popup-link) {
+  :global(.leaflet-container a.popup-link) {
     font-size: 0.85rem;
     color: var(--primary);
     font-weight: 500;
@@ -147,8 +151,25 @@ const statusMeta = STATUS_META;
   }
 </style>
 
-<script is:inline define:vars={{ points, base, statusMeta }}>
-  const map = L.map('map', { scrollWheelZoom: true, worldCopyJump: true });
+<script>
+  // Leaflet 随站点一起打包，不再依赖 unpkg 等外部 CDN
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  import { STATUS_META, type Status } from '../lib/utils';
+
+  interface Point {
+    title: string;
+    country: string;
+    motivation: string;
+    status: Status;
+    coords: [number, number];
+    href: string;
+    photo: string | null;
+  }
+
+  const el = document.getElementById('map')!;
+  const points: Point[] = JSON.parse(el.dataset.points ?? '[]');
+  const map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution:
@@ -156,28 +177,47 @@ const statusMeta = STATUS_META;
     maxZoom: 19,
   }).addTo(map);
 
-  const bounds = [];
+  /** 用 DOM 构建弹窗，文字一律走 textContent，不会被当成 HTML 解析 */
+  function popup(p: Point): HTMLElement {
+    const make = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string) => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text) node.textContent = text;
+      return node;
+    };
+    const wrap = document.createElement('div');
+    if (p.photo) {
+      const img = make('img', 'popup-photo');
+      img.src = p.photo;
+      img.alt = p.title;
+      wrap.append(img);
+    }
+    const title = make('p', 'popup-title', p.title);
+    title.append(make('small', undefined, `${p.country} · ${STATUS_META[p.status].label}`));
+    const link = make('a', 'popup-link', '查看档案 →');
+    link.href = p.href;
+    wrap.append(title, make('p', 'popup-motivation', `「${p.motivation}」`), link);
+    return wrap;
+  }
+
   for (const p of points) {
-    const meta = statusMeta[p.status];
-    const marker = L.circleMarker(p.coords, {
+    L.circleMarker(p.coords, {
       radius: 9,
       color: '#fffdf8',
       weight: 2.5,
-      fillColor: meta.color,
+      fillColor: STATUS_META[p.status].color,
       fillOpacity: 0.95,
-    }).addTo(map);
-
-    marker.bindPopup(
-      `<p class="popup-title">${p.title}<small>${p.country} · ${meta.label}</small></p>` +
-        `<p class="popup-motivation">「${p.motivation}」</p>` +
-        `<a class="popup-link" href="${base}/places/${p.id}/">查看档案 →</a>`
-    );
-    marker.bindTooltip(p.title, { direction: 'top', offset: [0, -8] });
-    bounds.push(p.coords);
+    })
+      .addTo(map)
+      .bindPopup(() => popup(p), { minWidth: p.photo ? 240 : 50, maxWidth: 260 })
+      .bindTooltip(p.title, { direction: 'top', offset: [0, -8] });
   }
 
-  if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 6 });
+  if (points.length > 0) {
+    map.fitBounds(
+      points.map((p) => p.coords),
+      { padding: [60, 60], maxZoom: 6 }
+    );
   } else {
     map.setView([30, 105], 3);
   }

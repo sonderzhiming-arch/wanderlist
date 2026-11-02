@@ -1,16 +1,33 @@
 ---
+// 字体随站点一起部署（按字符切片，页面只下载用到的部分），不依赖 Google Fonts，国内也能稳定加载
+import '@fontsource-variable/noto-serif-sc';
+import '@fontsource-variable/noto-sans-sc';
 import '../styles/global.css';
+import { BASE } from '../lib/utils';
 
 interface Props {
   title: string;
   description?: string;
+  /** 分享卡片图片的绝对地址（og:image） */
+  image?: string;
+  type?: 'website' | 'article';
 }
 
-const { title, description = '把每一个想去的地方，固化成一份可回看的档案。' } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const {
+  title,
+  description = '把每一个想去的地方，固化成一份可回看的档案。',
+  image,
+  type = 'website',
+} = Astro.props;
+
 const path = Astro.url.pathname;
-const isMap = path.startsWith(`${base}/map`);
-const isHome = !isMap && (path === `${base}/` || path === base);
+const section = path.startsWith(`${BASE}/map`) ? 'map' : path.startsWith(`${BASE}/photos`) ? 'photos' : path === `${BASE}/` || path === BASE ? 'home' : null;
+const canonical = Astro.site ? new URL(path, Astro.site).href : undefined;
+const nav = [
+  { key: 'home', href: `${BASE}/`, label: '清单' },
+  { key: 'map', href: `${BASE}/map/`, label: '地图' },
+  { key: 'photos', href: `${BASE}/photos/`, label: '相册' },
+];
 ---
 
 <!doctype html>
@@ -19,25 +36,30 @@ const isHome = !isMap && (path === `${base}/` || path === base);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="icon" type="image/svg+xml" href={`${BASE}/favicon.svg`} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:site_name" content="Wanderlist · 旅行愿望清单" />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {image && <meta property="og:image" content={image} />}
+    <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
     <title>{title}</title>
     <slot name="head" />
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href={`${base}/`}>
+      <a class="brand" href={`${BASE}/`}>
         <span class="brand-en">Wanderlist</span>
         <span class="brand-zh">旅行愿望清单</span>
       </a>
       <nav class="site-nav">
-        <a href={`${base}/`} aria-current={isHome ? 'page' : undefined}>清单</a>
-        <a href={`${base}/map/`} aria-current={isMap ? 'page' : undefined}>地图</a>
+        {nav.map((item) => (
+          <a href={item.href} aria-current={section === item.key ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))}
       </nav>
     </header>
     <slot />

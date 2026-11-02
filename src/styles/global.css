@@ -18,8 +18,8 @@
   --badge-visited-bg: #dde3d1;
   --badge-visited-fg: #56653f;
 
-  --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
-  --sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  --serif: 'Noto Serif SC Variable', 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --sans: 'Noto Sans SC Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
   --shadow-card: 0 1px 2px rgba(74, 56, 36, 0.06), 0 10px 28px -14px rgba(74, 56, 36, 0.28);
 }
@@ -87,6 +87,7 @@ img {
   font-weight: 900;
   letter-spacing: 0.02em;
   color: var(--primary);
+  white-space: nowrap;
 }
 
 .brand-zh {
@@ -115,10 +116,6 @@ img {
 
 .site-nav a:hover {
   color: var(--primary);
-}
-
-.brand-en {
-  white-space: nowrap;
 }
 
 @media (max-width: 520px) {
@@ -210,6 +207,20 @@ img {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff8ef;
+}
+
+/* ---------- 读屏可见、视觉隐藏 ---------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- 通用容器 ---------- */

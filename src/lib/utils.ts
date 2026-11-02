@@ -6,13 +6,15 @@ export const STATUS_META = {
 
 export type Status = keyof typeof STATUS_META;
 
+/** 部署 base，不带末尾斜杠，如「/wanderlist」 */
+export const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
 /** 2026-03-18 -> 「2026 年 3 月 18 日」（frontmatter 日期按 UTC 解析，故取 UTC 分量） */
 export function formatDate(d: Date): string {
   return `${d.getUTCFullYear()} 年 ${d.getUTCMonth() + 1} 月 ${d.getUTCDate()} 日`;
 }
 
-/** 给 public/ 下的资源路径加上部署 base 前缀 */
+/** 给 public/ 下的资源路径或站内链接加上部署 base 前缀 */
 export function withBase(path: string): string {
-  const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
-  return `${base}/${path.replace(/^\/+/, '')}`;
+  return `${BASE}/${path.replace(/^\/+/, '')}`;
 }

@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 
 const places = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/places' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     /** 地名，如「京都」 */
     title: z.string(),
     /** 国家 */
@@ -30,6 +30,26 @@ const places = defineCollection({
     coverImage: z.string().optional(),
     /** SVG 插画路径（相对 public/，不带 base 前缀），可选 */
     illustration: z.string().optional(),
+    /**
+     * 相册：照片放在 src/content/places/photos/<slug>/，路径相对本 md 文件，
+     * 如 ./photos/altay/01.jpg。构建时会校验文件存在，并自动压缩成多尺寸 webp。
+     * 网上找的照片必须填 credit / license / sourceUrl（署名要求）；自己拍的可以省略。
+     */
+    photos: z
+      .array(
+        z.object({
+          src: image(),
+          /** 中文说明，同时用作图片的替代文本 */
+          caption: z.string(),
+          /** 作者 */
+          credit: z.string().optional(),
+          /** 授权协议，如 CC BY-SA 4.0 */
+          license: z.string().optional(),
+          /** 原图页面 */
+          sourceUrl: z.string().url().optional(),
+        })
+      )
+      .default([]),
   }),
 });
 

@@ -1,0 +1,253 @@
+---
+/**
+ * 详情页「相册」：桌面端为一大四小的拼贴，超过 5 张时最后一格显示「+N」；
+ * 手机端变成可左右滑动的横条，显示全部照片。点击任意一张在灯箱中查看。
+ */
+import { Image } from 'astro:assets';
+import { hasAttribution, preparePhotos, widthsFor, type Photo } from '../lib/photos';
+
+interface Props {
+  photos: Photo[];
+}
+
+const { photos } = Astro.props;
+const items = await preparePhotos(photos);
+const shown = Math.min(items.length, 5);
+const extra = items.length - shown;
+const credited = items.filter(hasAttribution);
+---
+
+{
+  items.length > 0 && (
+    <section class="album" aria-labelledby="album-title">
+      <h2 id="album-title">
+        相册<span class="album-count">{items.length} 张</span>
+      </h2>
+
+      <div class="mosaic" data-count={shown} data-gallery>
+        {items.map((photo, i) => (
+          <a
+            class="mosaic-item"
+            href={photo.full.url}
+            data-lightbox
+            data-w={photo.full.width}
+            data-h={photo.full.height}
+            data-caption={photo.caption}
+            data-byline={photo.byline || undefined}
+            data-source={photo.sourceUrl}
+            aria-label={`查看大图：${photo.caption}`}
+          >
+            <Image
+              src={photo.src}
+              alt={photo.caption}
+              widths={widthsFor(photo.src, i === 0 ? [640, 960, 1280] : [400, 640])}
+              sizes={i === 0 ? '(max-width: 640px) 82vw, 480px' : '(max-width: 640px) 82vw, 240px'}
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+            {i === shown - 1 && extra > 0 && <span class="mosaic-more">+{extra}</span>}
+          </a>
+        ))}
+      </div>
+
+      {credited.length > 0 && (
+        <details class="photo-credits">
+          <summary>照片署名与授权</summary>
+          <ol>
+            {credited.map((photo) => (
+              <li>
+                <span class="credit-caption">{photo.caption}</span>
+                {photo.byline && <span>{photo.byline}</span>}
+                {photo.sourceUrl && (
+                  <a href={photo.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    原图 ↗
+                  </a>
+                )}
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .album {
+    margin-bottom: 2.4rem;
+  }
+
+  .album h2 {
+    font-size: 1.45rem;
+    color: var(--primary-deep);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .album h2::before {
+    content: '';
+    width: 1.4rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    flex: none;
+  }
+
+  .album-count {
+    margin-left: auto;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+
+  .mosaic {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    height: clamp(260px, 32vw, 400px);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  .mosaic[data-count='1'] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .mosaic[data-count='2'] {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .mosaic[data-count='3'] {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .mosaic[data-count='3'] .mosaic-item:first-child,
+  .mosaic[data-count='4'] .mosaic-item:first-child,
+  .mosaic[data-count='5'] .mosaic-item:first-child {
+    grid-row: span 2;
+  }
+
+  .mosaic[data-count='4'] .mosaic-item:nth-child(2) {
+    grid-column: span 2;
+  }
+
+  .mosaic-item {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--paper-deep);
+  }
+
+  .mosaic-item:nth-child(n + 6) {
+    display: none;
+  }
+
+  .mosaic-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease, filter 0.3s ease;
+  }
+
+  .mosaic-item:hover img {
+    transform: scale(1.04);
+  }
+
+  .mosaic-item:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+  }
+
+  .mosaic-more {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(40, 30, 22, 0.48);
+    color: #fffdf8;
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+  }
+
+  .photo-credits {
+    margin-top: 0.7rem;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  .photo-credits summary {
+    cursor: pointer;
+    width: fit-content;
+  }
+
+  .photo-credits summary:hover {
+    color: var(--primary);
+  }
+
+  .photo-credits ol {
+    margin: 0.5rem 0 0;
+    padding-left: 1.4em;
+    line-height: 1.7;
+  }
+
+  .photo-credits li {
+    margin-bottom: 0.25rem;
+  }
+
+  .photo-credits li > * + * {
+    margin-left: 0.6em;
+  }
+
+  .credit-caption {
+    color: var(--ink);
+  }
+
+  @media (max-width: 640px) {
+    /* 手机端：横向滑动条，出血到屏幕边缘 */
+    .mosaic,
+    .mosaic[data-count] {
+      display: flex;
+      height: auto;
+      gap: 0.6rem;
+      margin: 0 -1.5rem;
+      padding: 0 1.5rem 0.3rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 1.5rem;
+      border-radius: 0;
+      box-shadow: none;
+      scrollbar-width: none;
+    }
+
+    .mosaic::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mosaic-item,
+    .mosaic-item:nth-child(n + 6) {
+      display: block;
+      flex: 0 0 82%;
+      aspect-ratio: 4 / 3;
+      border-radius: 12px;
+      scroll-snap-align: start;
+    }
+
+    .mosaic[data-count='1'] .mosaic-item {
+      flex-basis: 100%;
+    }
+
+    .mosaic-more {
+      display: none;
+    }
+  }
+</style>

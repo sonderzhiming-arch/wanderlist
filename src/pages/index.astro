@@ -1,13 +1,14 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { STATUS_META, formatDate, withBase, type Status } from '../lib/utils';
+import { widthsFor } from '../lib/photos';
+import { BASE, STATUS_META, formatDate, withBase, type Status } from '../lib/utils';
 
 const places = (await getCollection('places')).sort(
   (a, b) => b.data.addedDate.getTime() - a.data.addedDate.getTime()
 );
 const regions = [...new Set(places.map((p) => p.data.region))];
-const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
 ---
 
 <Base title="Wanderlist · 旅行愿望清单">
@@ -22,16 +23,16 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     </section>
 
     <section class="filters" aria-label="筛选">
-      <div class="filter-group" data-filter="region">
+      <div class="filter-group" data-filter="region" role="group" aria-label="按地区筛选">
         <span class="filter-label">地区</span>
-        <button class="chip is-active" data-value="all">全部</button>
-        {regions.map((r) => <button class="chip" data-value={r}>{r}</button>)}
+        <button type="button" class="chip is-active" data-value="all" aria-pressed="true">全部</button>
+        {regions.map((r) => <button type="button" class="chip" data-value={r} aria-pressed="false">{r}</button>)}
       </div>
-      <div class="filter-group" data-filter="status">
+      <div class="filter-group" data-filter="status" role="group" aria-label="按状态筛选">
         <span class="filter-label">状态</span>
-        <button class="chip is-active" data-value="all">全部</button>
+        <button type="button" class="chip is-active" data-value="all" aria-pressed="true">全部</button>
         {Object.entries(STATUS_META).map(([key, meta]) => (
-          <button class="chip" data-value={key}>{meta.label}</button>
+          <button type="button" class="chip" data-value={key} aria-pressed="false">{meta.label}</button>
         ))}
       </div>
     </section>
@@ -41,20 +42,44 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
         const d = place.data;
         const status = d.status as Status;
         const cover = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
+        const photo = d.photos[0];
         return (
           <a
-            class="card"
-            href={`${base}/places/${place.id}/`}
+            class:list={['card', { 'has-photo': photo && cover }]}
+            href={`${BASE}/places/${place.id}/`}
             data-region={d.region}
             data-status={status}
           >
             <div class="card-cover">
               {cover ? (
-                <img src={cover} alt={`${d.title}插画`} loading="lazy" />
+                <img src={cover} alt={`${d.title}插画`} width="800" height="500" loading="lazy" decoding="async" />
+              ) : photo ? (
+                <Image src={photo.src} alt={photo.caption} widths={widthsFor(photo.src, [400, 720])} sizes="(max-width: 640px) 100vw, 360px" loading="lazy" />
               ) : (
                 <div class="card-cover-fallback"><span>{d.title.slice(0, 1)}</span></div>
               )}
+              {photo && cover && (
+                <Image
+                  class="card-photo"
+                  src={photo.src}
+                  alt=""
+                  aria-hidden="true"
+                  widths={widthsFor(photo.src, [400, 720])}
+                  sizes="(max-width: 640px) 100vw, 360px"
+                  loading="lazy"
+                />
+              )}
               <span class={`badge badge-${status}`}>{STATUS_META[status].label}</span>
+              {d.photos.length > 0 && (
+                <span class="photo-count" title={`${d.photos.length} 张照片`}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.2-1.8h5.4L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" />
+                    <circle cx="12" cy="12.3" r="3.3" />
+                  </svg>
+                  {d.photos.length}
+                  <span class="visually-hidden">张照片</span>
+                </span>
+              )}
             </div>
             <div class="card-body">
               <div class="card-title-row">
@@ -168,7 +193,7 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     background: var(--paper-deep);
   }
 
-  .card-cover img {
+  .card-cover :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -194,6 +219,47 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     top: 0.8rem;
     right: 0.8rem;
     box-shadow: 0 2px 8px rgba(60, 44, 26, 0.18);
+  }
+
+  /* 有照片的卡片：悬停时插画淡出、露出第一张实拍 */
+  .card-cover :global(.card-photo) {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+
+  @media (hover: hover) {
+    .card.has-photo:hover .card-cover :global(.card-photo),
+    .card.has-photo:focus-visible .card-cover :global(.card-photo) {
+      opacity: 1;
+    }
+  }
+
+  .photo-count {
+    position: absolute;
+    left: 0.8rem;
+    bottom: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.12em 0.7em 0.12em 0.55em;
+    border-radius: 999px;
+    background: rgba(56, 48, 42, 0.68);
+    color: #fffdf8;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.6;
+    backdrop-filter: blur(2px);
+  }
+
+  .photo-count svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
   }
 
   .card-body {
@@ -294,7 +360,10 @@ const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
         state[key] = chip.dataset.value!;
-        chips.forEach((c) => c.classList.toggle('is-active', c === chip));
+        chips.forEach((c) => {
+          c.classList.toggle('is-active', c === chip);
+          c.setAttribute('aria-pressed', String(c === chip));
+        });
         apply();
       });
     });
