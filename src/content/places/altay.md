@@ -11,6 +11,37 @@ status: wishlist
 visaType: 国内无需
 bestSeason: 9 月中旬–10 月初金秋（冬季粉雪季也值得）
 illustration: illustrations/altay.svg
+photos:
+  - src: ./photos/altay/01.jpg
+    caption: 俯瞰喀纳斯湖
+    credit: Wang Xiaozhe, Meng Jie
+    license: CC BY-SA 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Lake_Kanas.jpg
+  - src: ./photos/altay/02.jpg
+    caption: 喀纳斯的月亮湾
+    credit: Yanxutong1215
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E5%96%80%E7%BA%B3%E6%96%AF%E6%99%AF%E5%8C%BA%E6%9C%88%E4%BA%AE%E6%B9%BE.jpg
+  - src: ./photos/altay/03.jpg
+    caption: 金秋的喀纳斯河湾
+    credit: Bohao Zhao
+    license: CC BY 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%D0%9E%D0%B7%D0%B5%D1%80%D0%B5_%D0%9A%D0%B0%D0%BD%D0%B0%D1%81_-_Kanas_Lake_-_panoramio.jpg
+  - src: ./photos/altay/04.jpg
+    caption: 禾木河畔的禾木村
+    credit: Bohao Zhao Tongfei
+    license: CC BY 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Hemu_River_and_Mongolian_Village.jpg
+  - src: ./photos/altay/05.jpg
+    caption: 雪后的禾木村
+    credit: Leeinm
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Hemu_Village_in_the_snow.jpg
+  - src: ./photos/altay/06.jpg
+    caption: 喀纳斯湖畔骑马的牧民
+    credit: Muye Ma
+    license: CC0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Kanas_Lake,_Altay,_China_(Unsplash).jpg
 ---
 
 ## 美景

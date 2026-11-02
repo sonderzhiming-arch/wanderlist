@@ -11,6 +11,37 @@ status: wishlist
 visaType: 需办签证
 bestSeason: 6–8 月极昼航海季（9 月可看极光）
 illustration: illustrations/greenland.svg
+photos:
+  - src: ./photos/greenland/01.jpg
+    caption: 伊卢利萨特冰峡湾的冰山倒影
+    credit: Christoph Strässler
+    license: CC BY-SA 2.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Iceberg_in_the_Ilulissat_Icefjord,_Greenland_(54066379867).jpg
+  - src: ./photos/greenland/06.jpg
+    caption: 努克大教堂和彩色木屋
+    credit: Quintin Soloviev
+    license: CC BY 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Nuuk,_Greenland_skyline.jpg
+  - src: ./photos/greenland/02.jpg
+    caption: 冰山间的探险邮轮
+    credit: Gordon Leggett
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:2015-09-18_MS_OCEAN_ENDEAVOUR_-_IMO_7625811,_at_Qeqertarsuaq_Island_(Karrat_Fjord),_Greenland.jpg
+  - src: ./photos/greenland/05.jpg
+    caption: 格陵兰夜空的极光
+    credit: Stevegiovincophoto
+    license: CC BY 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Greenland_Photograph_Northern_Lights_Arctic_Night.jpg
+  - src: ./photos/greenland/04.jpg
+    caption: 迪斯科湾的座头鲸
+    credit: Giles Laurent
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:025_Humpback_whale_at_Disko_Bay_(Greenland)_Photo_by_Giles_Laurent.jpg
+  - src: ./photos/greenland/03.jpg
+    caption: 被阳光染成金色的冰山
+    credit: Buiobuione
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Panoramic_views_of_Icebergs_off_Greenland_in_the_Greenland_Sea_13.jpg
 ---
 
 ## 美景
