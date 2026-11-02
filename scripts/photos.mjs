@@ -261,16 +261,19 @@ function networkHint(error) {
   );
 }
 
+/** 最长等待（秒）：只用来防止异常的 Retry-After 值，正常情况都按服务器要求等满 */
+const MAX_WAIT = 900;
+
 /** Retry-After 头（秒数或 HTTP 日期）→ 需要等待的秒数；没有时按指数退避（5、10、20…秒） */
 export function retryDelay(header, attempt, now = Date.now(), base = 5) {
   const value = header?.trim();
   if (value) {
     const seconds = Number(value);
-    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds, 120);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds, MAX_WAIT);
     const date = Date.parse(value);
-    if (Number.isFinite(date)) return Math.min(Math.max(Math.ceil((date - now) / 1000), 0), 120);
+    if (Number.isFinite(date)) return Math.min(Math.max(Math.ceil((date - now) / 1000), 0), MAX_WAIT);
   }
-  return Math.min(base * 2 ** attempt, 120);
+  return Math.min(base * 2 ** attempt, MAX_WAIT);
 }
 
 const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -285,7 +288,7 @@ async function request(url, { timeout = 30000 } = {}) {
     }
     if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
       const wait = retryDelay(res.headers.get('retry-after'), attempt, Date.now(), BACKOFF_BASE);
-      console.warn(`  维基媒体${res.status === 429 ? '限流' : '繁忙'}，按要求等 ${wait} 秒后重试（${attempt + 1}/${MAX_RETRIES}）…`);
+      console.warn(`  维基媒体${res.status === 429 ? '限流' : '繁忙'}，按服务器要求等 ${wait} 秒后重试（${attempt + 1}/${MAX_RETRIES}）…`);
       await res.body?.cancel();
       await sleep(wait);
       continue;
@@ -452,31 +455,55 @@ async function cmdSearch(slug, opts) {
   }
 
   if (opts.preview) {
-    const dir = path.join(cacheDir, 'preview');
-    await mkdir(dir, { recursive: true });
-    // 维基媒体建议并发不超过 3
-    const saved = await mapLimit(usable.slice(0, PREVIEW_MAX), 2, async (c, i) => {
-      const url = c.url.replace(/\/\d+px-([^/]+)$/, `/${PREVIEW_WIDTH}px-$1`);
-      const ext = path.extname(new URL(url).pathname).toLowerCase() || '.jpg';
-      const file = path.join(dir, `${String(i + 1).padStart(2, '0')}${ext}`);
-      try {
-        await writeFile(file, await download(url));
-        return { file, label: String(i + 1) };
-      } catch (error) {
-        console.warn(`  预览图 ${i + 1} 下载失败：${error.message.split('\n')[0]}`);
-        return null;
-      }
-    });
-    const ok = saved.filter(Boolean);
-    const more = usable.length > PREVIEW_MAX ? `；只下载了前 ${PREVIEW_MAX} 张，后面的看标题和描述判断` : '';
-    if (ok.length > 0) {
-      const sheet = path.join(cacheDir, 'contact.jpg');
-      await contactSheet(ok, sheet);
-      console.log(`\n预览总览：${path.relative(ROOT, sheet)}（一张图里带编号的全部预览，先看这张${more}）`);
+    const numbers = usable.slice(0, PREVIEW_MAX).map((_, i) => i + 1);
+    await downloadPreviews(slug, usable, numbers);
+    if (usable.length > PREVIEW_MAX) {
+      console.log(`（只下载了前 ${PREVIEW_MAX} 张的预览；后面的可以用 npm run photos -- preview ${slug} <编号>... 补下）`);
     }
-    console.log(`单张预览：${path.relative(ROOT, dir)}/（文件名编号与上面一致）`);
+  } else {
+    console.log(`\n先看文字筛一轮，再下载想看的预览：npm run photos -- preview ${slug} <编号>...`);
   }
-  console.log(`\n挑好后运行：npm run photos -- add ${slug} <编号>...`);
+  console.log(`挑好后运行：npm run photos -- add ${slug} <编号>...`);
+}
+
+/** 下载指定编号候选的预览小图，并拼成带编号的总览图 contact.jpg */
+async function downloadPreviews(slug, candidates, numbers) {
+  const cacheDir = path.join(CACHE_DIR, slug);
+  const dir = path.join(cacheDir, 'preview');
+  await mkdir(dir, { recursive: true });
+  // 维基媒体建议并发不超过 3
+  const saved = await mapLimit(numbers, 2, async (n) => {
+    const c = candidates[n - 1];
+    // 缩略图地址形如 …/1280px-文件名.jpg?参数，把宽度换成预览尺寸
+    const url = c.url.replace(/\/\d+px-([^/?]+)(\?.*)?$/, `/${PREVIEW_WIDTH}px-$1$2`);
+    const ext = path.extname(new URL(url).pathname).toLowerCase() || '.jpg';
+    const file = path.join(dir, `${String(n).padStart(2, '0')}${ext}`);
+    try {
+      if (!existsSync(file)) await writeFile(file, await download(url));
+      return { file, label: String(n) };
+    } catch (error) {
+      console.warn(`  预览图 ${n} 下载失败：${error.message.split('\n')[0]}`);
+      return null;
+    }
+  });
+  const ok = saved.filter(Boolean);
+  if (ok.length > 0) {
+    const sheet = path.join(cacheDir, 'contact.jpg');
+    await contactSheet(ok, sheet);
+    console.log(`\n预览总览：${path.relative(ROOT, sheet)}（带编号的预览拼图，先看这张）`);
+  }
+  console.log(`单张预览：${path.relative(ROOT, dir)}/（文件名编号与候选列表一致）`);
+}
+
+async function cmdPreview(slug, refs) {
+  await readPlace(slug);
+  const cached = path.join(CACHE_DIR, slug, 'candidates.json');
+  if (!existsSync(cached)) throw new UserError(`先运行：npm run photos -- search ${slug}`);
+  const candidates = JSON.parse(await readFile(cached, 'utf8'));
+  const numbers = refs.length ? refs.map(Number) : candidates.slice(0, PREVIEW_MAX).map((_, i) => i + 1);
+  const bad = numbers.find((n) => !Number.isInteger(n) || n < 1 || n > candidates.length);
+  if (bad !== undefined) throw new UserError(`编号 ${bad} 不对（共 ${candidates.length} 个候选）`);
+  await downloadPreviews(slug, candidates, numbers);
 }
 
 async function resolveRefs(slug, refs) {
@@ -540,15 +567,31 @@ async function cmdAdd(slug, refs) {
       continue;
     }
     known.add(c.pageUrl);
-    items.push({
-      buffer: await download(c.url),
-      entry: { caption: defaultCaption(c), credit: c.artist || undefined, license: c.license, sourceUrl: c.pageUrl },
-    });
+    items.push(c);
   }
   if (items.length === 0) return console.log('没有需要添加的照片。');
   console.log(`添加到 ${place.title}：`);
-  await savePhotos(place, items);
-  console.log(`\n已写入 ${path.relative(ROOT, place.file)}。记得把 caption 改成简短的中文说明（作者/授权/链接不要改）。`);
+  // 每下载好一张就保存一张：被限流时整个过程可能很长，中途失败也不会丢掉已下载的照片
+  const failed = [];
+  for (const c of items) {
+    let buffer;
+    try {
+      buffer = await download(c.url);
+    } catch (error) {
+      console.warn(`  ✗ ${c.title} 下载失败：${error.message.split('\n')[0]}`);
+      failed.push(c.title);
+      continue;
+    }
+    const entry = { caption: defaultCaption(c), credit: c.artist || undefined, license: c.license, sourceUrl: c.pageUrl };
+    await savePhotos(place, [{ buffer, entry }]);
+  }
+  const saved = items.length - failed.length;
+  if (saved > 0) {
+    console.log(`\n已写入 ${path.relative(ROOT, place.file)}。记得把 caption 改成简短的中文说明（作者/授权/链接不要改）。`);
+  }
+  if (failed.length > 0) {
+    throw new UserError(`有 ${failed.length} 张没下载成功（已保存 ${saved} 张），可以稍后用同样的命令重试：\n${failed.join('\n')}`);
+  }
 }
 
 async function cmdImport(slug, files, opts) {
@@ -570,6 +613,8 @@ const HELP = `用法：
   npm run photos -- search <slug> [--q 关键词]... [--radius 公里] [--limit 条数] [--no-geo] [--preview]
       在维基共享资源按地名（frontmatter 的 title）和 --q 关键词搜索，并在坐标周边搜索；
       列出可用的自由授权照片。--preview 会把小图下载到 .cache/photos/<slug>/preview/ 方便挑选。
+  npm run photos -- preview <slug> [编号]...
+      给上次搜索的候选下载预览小图并拼成总览图（不写编号就是前 24 个）。
   npm run photos -- add <slug> <编号 | File:文件名 | Commons 链接>...
       下载选中的照片，压缩后存进 src/content/places/photos/<slug>/，并写入 frontmatter（含署名）。
   npm run photos -- import <slug> <本地图片>... [--caption 说明]
@@ -598,6 +643,7 @@ export async function main(argv) {
   const [command, slug, ...rest] = positionals;
   if (values.help || !command) return console.log(HELP);
   if (command === 'search') return cmdSearch(slug, values);
+  if (command === 'preview') return cmdPreview(slug, rest);
   if (command === 'add') return cmdAdd(slug, rest);
   if (command === 'import') return cmdImport(slug, rest, values);
   throw new UserError(`不认识的命令「${command}」\n\n${HELP}`);

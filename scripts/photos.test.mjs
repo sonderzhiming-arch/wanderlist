@@ -204,12 +204,13 @@ describe('纯函数', () => {
   test('retryDelay 按 Retry-After（秒数或日期）等待，没有就指数退避', () => {
     assert.equal(retryDelay('24', 0), 24);
     assert.equal(retryDelay('0', 3), 0);
-    assert.equal(retryDelay('9999', 0), 120);
+    assert.equal(retryDelay('600', 0), 600);
+    assert.equal(retryDelay('99999', 0), 900);
     const now = Date.parse('2026-11-02T03:00:00Z');
     assert.equal(retryDelay('Mon, 02 Nov 2026 03:00:30 GMT', 0, now), 30);
     assert.equal(retryDelay(null, 0), 5);
     assert.equal(retryDelay(undefined, 2), 20);
-    assert.equal(retryDelay('garbage', 10), 120);
+    assert.equal(retryDelay('garbage', 10), 900);
   });
 
   test('existingSources / toFileTitle / sameTitle / nextNumber', () => {
@@ -301,6 +302,16 @@ describe('完整流程（临时目录 + 假网络）', () => {
     assert.ok(requests.some((u) => u.pathname.endsWith('/330px-Demo_Lake_autumn.jpg')));
   });
 
+  test('preview 只下载指定编号的预览，编号越界时报错', async (t) => {
+    t.mock.method(console, 'log', () => {});
+    await rm(path.join(tmp, '.cache/photos/demo/preview'), { recursive: true, force: true });
+    await run(['preview', 'demo', '2', '4']);
+    const files = await readdir(path.join(tmp, '.cache/photos/demo/preview'));
+    assert.deepEqual(files.sort(), ['02.jpg', '04.jpg']);
+    assert.ok(requests.some((u) => u.pathname.endsWith('/330px-Demo_pier.jpg')));
+    await assert.rejects(run(['preview', 'demo', '9']), /编号 9 不对/);
+  });
+
   test('add 下载、压缩、写入带署名的 frontmatter，并跳过重复', async (t) => {
     t.mock.method(console, 'log', () => {});
     t.mock.method(console, 'warn', () => {});
@@ -367,6 +378,27 @@ describe('完整流程（临时目录 + 假网络）', () => {
     await run(['search', 'demo', '--no-geo']);
     assert.equal(busyNext, 0);
     assert.equal(warn.mock.calls.filter((c) => /繁忙/.test(c.arguments[0])).length, 1);
+  });
+
+  test('add 中途有一张下载失败时，已下载的照片照常保存', async (t) => {
+    t.mock.method(console, 'log', () => {});
+    t.mock.method(console, 'warn', () => {});
+    const md = path.join(tmp, 'src/content/places/demo.md');
+    const before = frontmatter(await readFile(md, 'utf8')).photos.length;
+    const realStub = globalThis.fetch;
+    globalThis.fetch = async (input) => {
+      const url = new URL(String(input));
+      if (url.pathname.includes('Demo_village_street')) return new Response('gone', { status: 404 });
+      return realStub(input);
+    };
+    try {
+      await assert.rejects(run(['add', 'demo', 'File:Demo village street.jpg', 'File:Demo Lake sunrise.jpg']), /1 张没下载成功（已保存 1 张）/);
+    } finally {
+      globalThis.fetch = realStub;
+    }
+    const { photos } = frontmatter(await readFile(md, 'utf8'));
+    assert.equal(photos.length, before + 1);
+    assert.equal(photos.at(-1).sourceUrl, 'https://commons.wikimedia.org/wiki/File:Demo_Lake_sunrise.jpg');
   });
 
   test('出错时给出可读的提示', async () => {
