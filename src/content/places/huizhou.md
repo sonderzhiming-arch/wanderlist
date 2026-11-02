@@ -11,6 +11,32 @@ status: wishlist
 visaType: 国内无需
 bestSeason: 3–4 月油菜花春雨季 / 11 月中旬塔川秋色
 illustration: illustrations/huizhou.svg
+photos:
+  - src: ./photos/huizhou/01.jpg
+    caption: 西递村的青石小巷
+    credit: Anna Frodesiak
+    license: Public domain
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Xidi_-_05.JPG
+  - src: ./photos/huizhou/02.jpg
+    caption: 黄山的奇峰与流云
+    credit: Miaulian
+    license: CC BY-SA 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Anhui_Huangshan.jpg
+  - src: ./photos/huizhou/03.jpg
+    caption: 雨中的西递村口牌坊
+    credit: Francesco Bandarin
+    license: CC BY-SA 3.0 igo
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Ancient_Villages_in_Southern_Anhui_%E2%80%93_Xidi_and_Hongcun-127239.jpg
+  - src: ./photos/huizhou/04.jpg
+    caption: 屯溪老街的雕花木楼
+    credit: lienyuan lee
+    license: CC BY 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E5%B1%AF%E6%BA%AA%E8%80%81%E8%A1%97_Tunxi_Old_Street_-_panoramio.jpg
+  - src: ./photos/huizhou/05.jpg
+    caption: 岩寺文峰塔的倒影
+    credit: Zhangzhugang
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Huizhou_Yansi_Wenfeng_Ta_yu_Fengshan_Tai_2016.11.13_15-41-17.jpg
 ---
 
 ## 美景

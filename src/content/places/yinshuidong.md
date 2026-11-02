@@ -11,6 +11,17 @@ status: visited
 visaType: 国内无需
 bestSeason: 全年恒温，7–8 月避暑最舒服
 illustration: illustrations/yinshuidong.svg
+photos:
+  - src: ./photos/yinshuidong/01.jpg
+    caption: 隐水洞入口的一潭碧水
+    credit: Hbysyg502
+    license: CC BY-SA 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E9%80%9A%E5%B1%B1%E5%8E%BF%E9%9A%90%E6%B0%B4%E6%B4%9E%E5%9C%B0%E8%B4%A8%E5%85%AC%E5%9B%AD,_%E9%9A%90%E6%B0%B4%E6%B4%9E%E5%85%A5%E5%8F%A3,_2019-04-26.png
+  - src: ./photos/yinshuidong/02.jpg
+    caption: 附近富水湖的湖湾
+    credit: Vmenkov
+    license: CC BY-SA 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Tongyang_-_a_bay_of_Fushui_Reservoir_-_CIMG9834.JPG
 ---
 
 ## 美景

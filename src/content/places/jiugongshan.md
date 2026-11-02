@@ -11,6 +11,32 @@ status: visited
 visaType: 国内无需
 bestSeason: 6–8 月避暑观星季（避开台风外围影响的阴雨天）
 illustration: illustrations/jiugongshan.svg
+photos:
+  - src: ./photos/jiugongshan/01.jpg
+    caption: 雾中的云中湖
+    credit: Ddayzzz
+    license: CC BY 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E4%B9%9D%E5%AE%AB%E5%B1%B1%E4%BA%91%E4%B8%AD%E6%B9%96%E6%99%AF%E5%8C%BA.jpg
+  - src: ./photos/jiugongshan/02.jpg
+    caption: 云雾里的山脊和风车
+    credit: liuzr99
+    license: CC BY-SA 2.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E4%B9%9D%E5%AE%AB%E5%B1%B1%E9%A3%8E%E6%99%AF%E4%B9%8B%E4%B8%80_(9600253902).jpg
+  - src: ./photos/jiugongshan/03.jpg
+    caption: 九宫山大峡谷的云雾
+    credit: liuzr99
+    license: CC BY-SA 2.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:Jiugongshan_grand_canyon_(9612785035).jpg
+  - src: ./photos/jiugongshan/04.jpg
+    caption: 闯王陵的石牌坊
+    credit: Ddayzzz
+    license: CC BY 4.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:%E9%80%9A%E5%B1%B1%E5%8E%BF%E6%9D%8E%E8%87%AA%E6%88%90%E5%A2%93%E7%9F%B3%E7%89%8C%E5%9D%8A.jpg
+  - src: ./photos/jiugongshan/05.jpg
+    caption: 上山路上的山村和稻田
+    credit: Vmenkov
+    license: CC BY-SA 3.0
+    sourceUrl: https://commons.wikimedia.org/wiki/File:View_from_the_road_to_Jiugongshan_-_panoramic_-_CIMG9934.JPG
 ---
 
 ## 美景
