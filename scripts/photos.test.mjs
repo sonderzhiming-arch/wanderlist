@@ -15,6 +15,7 @@ import {
   mergeCandidates,
   nextNumber,
   rejectReason,
+  retryDelay,
   sameTitle,
   stripHtml,
   toCandidate,
@@ -107,6 +108,7 @@ describe('纯函数', () => {
   test('stripHtml 去标签、解码实体', () => {
     assert.equal(stripHtml('<p>秋天的<b>示例湖</b>&nbsp;全景&amp;<br/>远山 &#x4E2D;&#22269;</p>'), '秋天的示例湖 全景& 远山 中国');
     assert.equal(stripHtml(undefined), '');
+    assert.equal(stripHtml('\u200b喀纳斯湖\ufeff '), '喀纳斯湖');
   });
 
   test('isFreeLicense 只接受可公开使用的自由授权', () => {
@@ -132,18 +134,23 @@ describe('纯函数', () => {
     assert.match(rejectReason(tiny), /太小/);
     assert.match(rejectReason(svg), /格式/);
     assert.match(rejectReason(pano), /比例/);
+    assert.match(rejectReason({ ...sunrise, title: 'File:Mapillary (sermersooq) 2016-10-17 12H44M21S593.jpg' }), /自动拍摄/);
     assert.equal(toCandidate({ title: 'File:Missing.jpg', missing: true }), null);
     assert.equal(toCandidate(GEO_PAGES[0]).distance, 2300.5);
   });
 
-  test('mergeCandidates：每批按名次/距离排序，跨批去重', () => {
+  test('mergeCandidates：每批按名次/距离排序，轮流取、跨批去重', () => {
     const merged = mergeCandidates([SEARCH_PAGES.map(toCandidate), GEO_PAGES.map(toCandidate)]);
-    assert.deepEqual(
-      merged.map((c) => c.title).slice(0, 2),
-      ['File:Demo Lake sunrise.jpg', 'File:Demo Lake autumn.jpg']
-    );
+    assert.deepEqual(merged.map((c) => c.title).slice(0, 5), [
+      'File:Demo Lake sunrise.jpg', // 关键词第 1 名
+      'File:Demo pier.jpg', // 周边最近
+      'File:Demo Lake autumn.jpg', // 关键词第 2 名（周边第 2 张与之前重复，跳过）
+      'File:Demo Lake location map.png',
+      'File:Demo village street.jpg',
+    ]);
     assert.equal(merged.filter((c) => c.title === 'File:Demo Lake sunrise.jpg').length, 1);
-    assert.deepEqual(merged.slice(-2).map((c) => c.title), ['File:Demo pier.jpg', 'File:Demo village street.jpg']);
+    assert.equal(merged.length, 9);
+    assert.deepEqual(mergeCandidates([]), []);
   });
 
   test('yamlString 安全时用裸字符串，否则加引号', () => {
@@ -194,6 +201,17 @@ describe('纯函数', () => {
     assert.throws(() => insertPhotos('no frontmatter', []), /frontmatter/);
   });
 
+  test('retryDelay 按 Retry-After（秒数或日期）等待，没有就指数退避', () => {
+    assert.equal(retryDelay('24', 0), 24);
+    assert.equal(retryDelay('0', 3), 0);
+    assert.equal(retryDelay('9999', 0), 120);
+    const now = Date.parse('2026-11-02T03:00:00Z');
+    assert.equal(retryDelay('Mon, 02 Nov 2026 03:00:30 GMT', 0, now), 30);
+    assert.equal(retryDelay(null, 0), 5);
+    assert.equal(retryDelay(undefined, 2), 20);
+    assert.equal(retryDelay('garbage', 10), 120);
+  });
+
   test('existingSources / toFileTitle / sameTitle / nextNumber', () => {
     const md = insertPhotos(PLACE_MD, [{ src: './a.jpg', caption: 'x', sourceUrl: 'https://commons.wikimedia.org/wiki/File:A.jpg' }]);
     assert.deepEqual([...existingSources(md)], ['https://commons.wikimedia.org/wiki/File:A.jpg']);
@@ -212,6 +230,8 @@ describe('完整流程（临时目录 + 假网络）', () => {
   let tmp;
   let run;
   let requests = [];
+  let rateLimitNext = 0; // 接下来这么多个请求返回 429
+  let busyNext = 0; // 接下来这么多个 API 请求返回「搜索繁忙」
   const realFetch = globalThis.fetch;
 
   before(async () => {
@@ -221,14 +241,23 @@ describe('完整流程（临时目录 + 假网络）', () => {
     await symlink(path.join(ROOT, 'node_modules'), path.join(tmp, 'node_modules'), 'dir');
     await mkdir(path.join(tmp, 'src/content/places'), { recursive: true });
     await writeFile(path.join(tmp, 'src/content/places/demo.md'), PLACE_MD);
+    process.env.PHOTOS_BACKOFF_BASE = '0'; // 测试里不真的等待
     ({ main: run } = await import(pathToFileURL(path.join(tmp, 'scripts/photos.mjs')).href));
 
     const jpeg = await sharp({ create: { width: 1280, height: 853, channels: 3, background: '#6a8caf' } }).jpeg().toBuffer();
     globalThis.fetch = async (input) => {
       const url = new URL(String(input));
       requests.push(url);
+      if (rateLimitNext > 0) {
+        rateLimitNext--;
+        return new Response('You are making too many requests to the API.', { status: 429, headers: { 'retry-after': '0' } });
+      }
       if (url.hostname === 'upload.wikimedia.org') return new Response(jpeg, { headers: { 'content-type': 'image/jpeg' } });
       const p = url.searchParams;
+      if (busyNext > 0 && url.hostname === 'commons.wikimedia.org') {
+        busyNext--;
+        return Response.json({ error: { code: 'search-error', info: 'Search is currently too busy. Please try again later.' } });
+      }
       let pages = [];
       if (p.get('generator') === 'search') pages = SEARCH_PAGES;
       else if (p.get('generator') === 'geosearch') pages = GEO_PAGES;
@@ -259,20 +288,24 @@ describe('完整流程（临时目录 + 假网络）', () => {
     const cands = JSON.parse(await readFile(path.join(tmp, '.cache/photos/demo/candidates.json'), 'utf8'));
     assert.deepEqual(cands.map((c) => c.title), [
       'File:Demo Lake sunrise.jpg',
-      'File:Demo Lake autumn.jpg',
       'File:Demo pier.jpg',
+      'File:Demo Lake autumn.jpg',
       'File:Demo village street.jpg',
     ]);
     const previews = await readdir(path.join(tmp, '.cache/photos/demo/preview'));
     assert.deepEqual(previews.sort(), ['01.jpg', '02.jpg', '03.jpg', '04.jpg']);
+    const sheet = await sharp(path.join(tmp, '.cache/photos/demo/contact.jpg')).metadata();
+    assert.equal(sheet.format, 'jpeg');
+    assert.equal(sheet.width, 5 * 308 + 8); // 5 列
+    assert.equal(sheet.height, 1 * 218 + 8); // 4 张只占 1 行
     assert.ok(requests.some((u) => u.pathname.endsWith('/330px-Demo_Lake_autumn.jpg')));
   });
 
   test('add 下载、压缩、写入带署名的 frontmatter，并跳过重复', async (t) => {
     t.mock.method(console, 'log', () => {});
     t.mock.method(console, 'warn', () => {});
-    await run(['add', 'demo', '2', 'File:Demo_pier.jpg']);
-    await run(['add', 'demo', '2']); // 重复，应跳过
+    await run(['add', 'demo', '3', 'File:Demo_pier.jpg']);
+    await run(['add', 'demo', '3']); // 重复，应跳过
 
     const md = await readFile(path.join(tmp, 'src/content/places/demo.md'), 'utf8');
     const { photos } = frontmatter(md);
@@ -312,6 +345,28 @@ describe('完整流程（临时目录 + 假网络）', () => {
     const meta = await sharp(path.join(tmp, 'src/content/places/photos/demo/03.jpg')).metadata();
     assert.equal(meta.width, 1600);
     assert.equal(meta.exif, undefined);
+  });
+
+  test('被限流（429）时按 Retry-After 等待后自动重试', async (t) => {
+    t.mock.method(console, 'log', () => {});
+    const warn = t.mock.method(console, 'warn', () => {});
+    rateLimitNext = 2;
+    const before = requests.length;
+    await run(['search', 'demo', '--no-geo']);
+    assert.equal(rateLimitNext, 0);
+    assert.equal(warn.mock.calls.filter((c) => /限流/.test(c.arguments[0])).length, 2);
+    assert.equal(requests.length - before, 3, '两次 429 + 一次成功');
+    const cands = JSON.parse(await readFile(path.join(tmp, '.cache/photos/demo/candidates.json'), 'utf8'));
+    assert.ok(cands.length > 0);
+  });
+
+  test('搜索后端繁忙时退避重试', async (t) => {
+    t.mock.method(console, 'log', () => {});
+    const warn = t.mock.method(console, 'warn', () => {});
+    busyNext = 1;
+    await run(['search', 'demo', '--no-geo']);
+    assert.equal(busyNext, 0);
+    assert.equal(warn.mock.calls.filter((c) => /繁忙/.test(c.arguments[0])).length, 1);
   });
 
   test('出错时给出可读的提示', async () => {

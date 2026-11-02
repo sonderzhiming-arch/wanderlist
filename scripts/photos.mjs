@@ -25,11 +25,18 @@ const PLACES_DIR = path.join(ROOT, 'src/content/places');
 const CACHE_DIR = path.join(ROOT, '.cache/photos');
 
 const API = 'https://commons.wikimedia.org/w/api.php';
-// 维基媒体要求请求带上能说明来源的 User-Agent
-const USER_AGENT = 'WanderlistPhotos/1.0 (https://github.com/sonderzhiming-arch/wanderlist; personal travel wishlist)';
+// 维基媒体要求带上能识别来源、附联系方式的 User-Agent，格式见其 User-Agent Policy：
+// 名称/版本 (联系方式) 所用库/版本。合规的 User-Agent 限速宽松得多
+const USER_AGENT = `WanderlistPhotos/1.1 (https://github.com/sonderzhiming-arch/wanderlist) Node.js/${process.versions.node}`;
+/** 被限流（429）或服务繁忙（503）时最多重试几次；等待时间按服务器给的 Retry-After */
+const MAX_RETRIES = 5;
+/** 没有 Retry-After 时指数退避的起始秒数（测试里设为 0） */
+const BACKOFF_BASE = Number(process.env.PHOTOS_BACKOFF_BASE ?? 5);
 /** 下载用的缩略图宽度：1280 是维基媒体的标准缩略图档位之一 */
 const DOWNLOAD_WIDTH = 1280;
 const PREVIEW_WIDTH = 330;
+/** 最多下载多少张预览图（图片服务器限流较严，候选靠后的一般也用不上） */
+const PREVIEW_MAX = 24;
 /** 存进仓库的照片最长边，以及 JPEG 质量 */
 const MAX_EDGE = 1600;
 const JPEG_QUALITY = 82;
@@ -58,6 +65,7 @@ export function stripHtml(html = '') {
       const n = code[1].toLowerCase() === 'x' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
       return Number.isFinite(n) ? String.fromCodePoint(n) : m;
     })
+    .replace(/[\u200b-\u200d\u2060\ufeff]/g, '') // 零宽字符（Commons 的描述里常见）
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -110,15 +118,22 @@ export function rejectReason(c) {
   const ratio = c.width / c.height;
   if (ratio > 2.6 || ratio < 0.55) return '比例太极端（全景/长条图）';
   if (NON_PHOTO.test(c.title.replace(/[_-]/g, ' '))) return '像是地图/图标/文档';
+  if (/^File:Mapillary\b/i.test(c.title)) return '街景车自动拍摄';
   return null;
 }
 
-/** 合并多次查询的结果：去重并保持先后顺序（关键词结果在前，周边结果在后） */
+/**
+ * 合并多次查询的结果：每批先按名次/距离排序，再轮流从各批取一张并去重，
+ * 这样候选数量有上限时，每个关键词和周边搜索都能分到名额
+ */
 export function mergeCandidates(batches) {
+  const sorted = batches.map((batch) => [...batch].filter(Boolean).sort((a, b) => a.index - b.index));
   const seen = new Set();
   const out = [];
-  for (const batch of batches) {
-    for (const c of [...batch].sort((a, b) => a.index - b.index)) {
+  const longest = Math.max(0, ...sorted.map((b) => b.length));
+  for (let i = 0; i < longest; i++) {
+    for (const batch of sorted) {
+      const c = batch[i];
       if (!c || seen.has(c.title)) continue;
       seen.add(c.title);
       out.push(c);
@@ -246,16 +261,39 @@ function networkHint(error) {
   );
 }
 
-async function request(url, { timeout = 30000 } = {}) {
-  let res;
-  try {
-    res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(timeout) });
-  } catch (error) {
-    throw networkHint(error);
+/** Retry-After 头（秒数或 HTTP 日期）→ 需要等待的秒数；没有时按指数退避（5、10、20…秒） */
+export function retryDelay(header, attempt, now = Date.now(), base = 5) {
+  const value = header?.trim();
+  if (value) {
+    const seconds = Number(value);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds, 120);
+    const date = Date.parse(value);
+    if (Number.isFinite(date)) return Math.min(Math.max(Math.ceil((date - now) / 1000), 0), 120);
   }
-  if (res.status === 429) throw new UserError('请求太频繁，被维基媒体限流了，过几分钟再试');
-  if (!res.ok) throw new UserError(`请求失败：HTTP ${res.status} ${url}`);
-  return res;
+  return Math.min(base * 2 ** attempt, 120);
+}
+
+const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+async function request(url, { timeout = 30000 } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    let res;
+    try {
+      res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(timeout) });
+    } catch (error) {
+      throw networkHint(error);
+    }
+    if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
+      const wait = retryDelay(res.headers.get('retry-after'), attempt, Date.now(), BACKOFF_BASE);
+      console.warn(`  维基媒体${res.status === 429 ? '限流' : '繁忙'}，按要求等 ${wait} 秒后重试（${attempt + 1}/${MAX_RETRIES}）…`);
+      await res.body?.cancel();
+      await sleep(wait);
+      continue;
+    }
+    if (res.status === 429) throw new UserError('请求太频繁，被维基媒体限流了，过几分钟再试');
+    if (!res.ok) throw new UserError(`请求失败：HTTP ${res.status} ${url}`);
+    return res;
+  }
 }
 
 async function commonsQuery(params) {
@@ -272,14 +310,51 @@ async function commonsQuery(params) {
     ...params,
   };
   for (const [k, v] of Object.entries(all)) url.searchParams.set(k, v);
-  const data = await (await request(url)).json();
-  if (data.error) throw new UserError(`Commons API 报错：${data.error.info ?? data.error.code}`);
-  return (data.query?.pages ?? []).map(toCandidate).filter(Boolean);
+  for (let attempt = 0; ; attempt++) {
+    const data = await (await request(url)).json();
+    if (!data.error) return (data.query?.pages ?? []).map(toCandidate).filter(Boolean);
+    // 搜索后端繁忙（共享出口 IP 上很常见）是临时错误，退避后重试
+    const busy = /too busy|try again later|maxlag|ratelimited/i.test(`${data.error.code} ${data.error.info}`);
+    if (busy && attempt < MAX_RETRIES) {
+      const wait = retryDelay(null, attempt, Date.now(), BACKOFF_BASE);
+      console.warn(`  维基共享资源搜索繁忙，等 ${wait} 秒后重试（${attempt + 1}/${MAX_RETRIES}）…`);
+      await sleep(wait);
+      continue;
+    }
+    throw new UserError(`Commons API 报错：${data.error.info ?? data.error.code}`);
+  }
 }
 
 async function download(url) {
   const res = await request(url, { timeout: 60000 });
   return Buffer.from(await res.arrayBuffer());
+}
+
+/** 把预览图拼成一张带编号的总览图，挑图时看一张就够 */
+export async function contactSheet(items, out) {
+  const { default: sharp } = await import('sharp');
+  const cols = 5;
+  const [cw, ch, pad] = [300, 210, 8];
+  const rows = Math.ceil(items.length / cols);
+  const composites = [];
+  for (const [i, { file, label }] of items.entries()) {
+    const left = pad + (i % cols) * (cw + pad);
+    const top = pad + Math.floor(i / cols) * (ch + pad);
+    try {
+      const thumb = await sharp(file).resize(cw, ch, { fit: 'contain', background: '#282828' }).toBuffer();
+      composites.push({ input: thumb, left, top });
+    } catch {
+      continue; // 个别预览图损坏时跳过
+    }
+    const badge = `<svg xmlns="http://www.w3.org/2000/svg" width="46" height="32"><rect width="46" height="32" fill="#c82828"/><text x="23" y="23" font-family="sans-serif" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">${label}</text></svg>`;
+    composites.push({ input: Buffer.from(badge), left, top });
+  }
+  await sharp({
+    create: { width: cols * (cw + pad) + pad, height: rows * (ch + pad) + pad, channels: 3, background: '#282828' },
+  })
+    .composite(composites)
+    .jpeg({ quality: 82 })
+    .toFile(out);
 }
 
 /** 统一处理：按 EXIF 摆正方向、缩到最长边 MAX_EDGE、转 JPEG；不保留 EXIF（去掉 GPS 等隐私信息） */
@@ -379,17 +454,27 @@ async function cmdSearch(slug, opts) {
   if (opts.preview) {
     const dir = path.join(cacheDir, 'preview');
     await mkdir(dir, { recursive: true });
-    await mapLimit(usable, 4, async (c, i) => {
+    // 维基媒体建议并发不超过 3
+    const saved = await mapLimit(usable.slice(0, PREVIEW_MAX), 2, async (c, i) => {
       const url = c.url.replace(/\/\d+px-([^/]+)$/, `/${PREVIEW_WIDTH}px-$1`);
       const ext = path.extname(new URL(url).pathname).toLowerCase() || '.jpg';
       const file = path.join(dir, `${String(i + 1).padStart(2, '0')}${ext}`);
       try {
         await writeFile(file, await download(url));
+        return { file, label: String(i + 1) };
       } catch (error) {
         console.warn(`  预览图 ${i + 1} 下载失败：${error.message.split('\n')[0]}`);
+        return null;
       }
     });
-    console.log(`\n预览图：${path.relative(ROOT, dir)}/（文件名编号与上面一致，用看图工具逐张确认）`);
+    const ok = saved.filter(Boolean);
+    const more = usable.length > PREVIEW_MAX ? `；只下载了前 ${PREVIEW_MAX} 张，后面的看标题和描述判断` : '';
+    if (ok.length > 0) {
+      const sheet = path.join(cacheDir, 'contact.jpg');
+      await contactSheet(ok, sheet);
+      console.log(`\n预览总览：${path.relative(ROOT, sheet)}（一张图里带编号的全部预览，先看这张${more}）`);
+    }
+    console.log(`单张预览：${path.relative(ROOT, dir)}/（文件名编号与上面一致）`);
   }
   console.log(`\n挑好后运行：npm run photos -- add ${slug} <编号>...`);
 }
