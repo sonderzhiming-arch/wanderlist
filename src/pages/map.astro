@@ -93,6 +93,11 @@ const points = await Promise.all(
     background: var(--paper-deep);
   }
 
+  /* 底图稍微降低饱和度、偏暖一点，和站点的纸张配色更协调 */
+  #map :global(.leaflet-tile-pane) {
+    filter: saturate(0.82) sepia(0.12);
+  }
+
   /* Leaflet 弹窗排版（全局作用于 leaflet 注入的 DOM） */
   :global(.leaflet-popup-content-wrapper) {
     background: var(--card);
@@ -155,6 +160,7 @@ const points = await Promise.all(
   // Leaflet 随站点一起打包，不再依赖 unpkg 等外部 CDN
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
+  import { wgs84ToGcj02 } from '../lib/geo.js';
   import { STATUS_META, type Status } from '../lib/utils';
 
   interface Point {
@@ -171,11 +177,33 @@ const points = await Promise.all(
   const points: Point[] = JSON.parse(el.dataset.points ?? '[]');
   const map = L.map(el, { scrollWheelZoom: true, worldCopyJump: true });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    maxZoom: 19,
-  }).addTo(map);
+  // 底图：默认用高德（国内访问快、中文地名、不需要 key），加载不出来时自动换成 OpenStreetMap。
+  // 高德用国内的 GCJ-02 坐标，国内地点要先转换；OpenStreetMap 直接用原始的 WGS-84 坐标。
+  const bases = [
+    {
+      gcj: true,
+      layer: L.tileLayer(
+        'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+        {
+          subdomains: '1234',
+          maxZoom: 18,
+          attribution: '&copy; <a href="https://www.amap.com/" target="_blank" rel="noopener">高德地图</a>',
+        }
+      ),
+    },
+    {
+      gcj: false,
+      layer: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 贡献者',
+      }),
+    },
+  ];
+  let active = 0;
+
+  const position = (p: Point): [number, number] =>
+    bases[active].gcj ? wgs84ToGcj02(p.coords[0], p.coords[1]) : p.coords;
 
   /** 用 DOM 构建弹窗，文字一律走 textContent，不会被当成 HTML 解析 */
   function popup(p: Point): HTMLElement {
@@ -200,8 +228,9 @@ const points = await Promise.all(
     return wrap;
   }
 
-  for (const p of points) {
-    L.circleMarker(p.coords, {
+  const markers = points.map((p) => ({
+    p,
+    marker: L.circleMarker(position(p), {
       radius: 9,
       color: '#fffdf8',
       weight: 2.5,
@@ -210,15 +239,35 @@ const points = await Promise.all(
     })
       .addTo(map)
       .bindPopup(() => popup(p), { minWidth: p.photo ? 240 : 50, maxWidth: 260 })
-      .bindTooltip(p.title, { direction: 'top', offset: [0, -8] });
+      .bindTooltip(p.title, { direction: 'top', offset: [0, -8] }),
+  }));
+
+  /** 启用第 i 个底图；一张图块都没加载出来（报错或 8 秒没响应）就换下一个 */
+  function useBase(i: number) {
+    bases[active].layer.remove();
+    active = i;
+    const { layer } = bases[i];
+    layer.addTo(map);
+    for (const { p, marker } of markers) marker.setLatLng(position(p));
+    let loaded = 0;
+    let failed = 0;
+    const fallback = () => {
+      if (active === i && loaded === 0 && i + 1 < bases.length) useBase(i + 1);
+    };
+    layer.on('tileload', () => loaded++);
+    layer.on('tileerror', () => {
+      if (++failed >= 4) fallback();
+    });
+    setTimeout(fallback, 8000);
   }
 
   if (points.length > 0) {
     map.fitBounds(
-      points.map((p) => p.coords),
+      points.map(position),
       { padding: [60, 60], maxZoom: 6 }
     );
   } else {
     map.setView([30, 105], 3);
   }
+  useBase(0);
 </script>

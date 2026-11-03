@@ -38,36 +38,34 @@ const regions = [...new Set(places.map((p) => p.data.region))];
     </section>
 
     <section class="gallery">
-      {places.map((place) => {
+      {places.map((place, index) => {
         const d = place.data;
         const status = d.status as Status;
-        const cover = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
-        const photo = d.photos[0];
+        // 封面优先级：手动指定的 coverImage > 相册第一张照片 > 手绘插画
+        const photo = d.coverImage ? undefined : d.photos[0];
+        const drawing = d.coverImage ? withBase(d.coverImage) : d.illustration ? withBase(d.illustration) : null;
+        // 首屏的几张直接加载，其余滚动到附近再加载
+        const loading = index < 3 ? 'eager' : 'lazy';
         return (
           <a
-            class:list={['card', { 'has-photo': photo && cover }]}
+            class="card"
             href={`${BASE}/places/${place.id}/`}
             data-region={d.region}
             data-status={status}
           >
             <div class="card-cover">
-              {cover ? (
-                <img src={cover} alt={`${d.title}插画`} width="800" height="500" loading="lazy" decoding="async" />
-              ) : photo ? (
-                <Image src={photo.src} alt={photo.caption} widths={widthsFor(photo.src, [400, 720])} sizes="(max-width: 640px) 100vw, 360px" loading="lazy" />
+              {photo ? (
+                <Image
+                  src={photo.src}
+                  alt={photo.caption}
+                  widths={widthsFor(photo.src, [480, 720, 1080])}
+                  sizes="(max-width: 640px) calc(100vw - 48px), (max-width: 1040px) 45vw, 360px"
+                  loading={loading}
+                />
+              ) : drawing ? (
+                <img src={drawing} alt={`${d.title}插画`} width="800" height="500" loading={loading} decoding="async" />
               ) : (
                 <div class="card-cover-fallback"><span>{d.title.slice(0, 1)}</span></div>
-              )}
-              {photo && cover && (
-                <Image
-                  class="card-photo"
-                  src={photo.src}
-                  alt=""
-                  aria-hidden="true"
-                  widths={widthsFor(photo.src, [400, 720])}
-                  sizes="(max-width: 640px) 100vw, 360px"
-                  loading="lazy"
-                />
               )}
               <span class={`badge badge-${status}`}>{STATUS_META[status].label}</span>
               {d.photos.length > 0 && (
@@ -190,6 +188,7 @@ const regions = [...new Set(places.map((p) => p.data.region))];
   .card-cover {
     position: relative;
     aspect-ratio: 8 / 5;
+    overflow: hidden; /* 不让比例不同的照片把封面撑高，所有卡片封面一样大 */
     background: var(--paper-deep);
   }
 
@@ -219,21 +218,6 @@ const regions = [...new Set(places.map((p) => p.data.region))];
     top: 0.8rem;
     right: 0.8rem;
     box-shadow: 0 2px 8px rgba(60, 44, 26, 0.18);
-  }
-
-  /* 有照片的卡片：悬停时插画淡出、露出第一张实拍 */
-  .card-cover :global(.card-photo) {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.45s ease;
-  }
-
-  @media (hover: hover) {
-    .card.has-photo:hover .card-cover :global(.card-photo),
-    .card.has-photo:focus-visible .card-cover :global(.card-photo) {
-      opacity: 1;
-    }
   }
 
   .photo-count {

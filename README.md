@@ -45,7 +45,7 @@ frontmatter schema 定义在 `src/content.config.ts`。
 
 ## 相册与照片
 
-每个目的地可以有一组照片，显示在详情页的「相册」、首页卡片（悬停时露出第一张）、
+每个目的地可以有一组照片，显示在详情页的「相册」、首页卡片封面（第一张）、
 地图弹窗和 `/photos/` 照片墙里，点开可以全屏左右翻看。
 
 照片存放在 `src/content/places/photos/<slug>/`，在 md 的 frontmatter 里登记：
@@ -80,7 +80,7 @@ npm run photos -- import jiugongshan ~/Pictures/IMG_0001.jpg --caption "铜鼓�
 src/content/places/          目的地档案（Markdown，一地一文件）
 src/content/places/photos/   相册照片（一地一个文件夹）
 src/pages/index.astro        首页：卡片画廊 + 地区/状态筛选
-src/pages/map.astro          地图页：Leaflet 世界地图打点
+src/pages/map.astro          地图页：Leaflet 打点，高德底图（国内可用），加载失败时自动换 OpenStreetMap
 src/pages/photos.astro       相册页：按目的地分组的照片墙
 src/pages/places/            详情页：杂志式排版
 src/components/              相册拼图、全屏看图组件
